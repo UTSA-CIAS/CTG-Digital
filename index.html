@@ -1,0 +1,32 @@
+<html>
+
+<head>
+	<meta charset="UTF-8">
+	<title>Main</title>
+	<script src="assets/js/soundjs.js"></script>
+	<script src="main.js"></script>
+	<script src="assets/js/sound.js"></script>
+</head>
+
+<body>
+	<!--<div id="myapp"></div>-->
+	<button onclick="playSound();" class="playSound">Play Sound</button>
+	<script>
+
+		var app = Elm.Main.init({
+			node: document.getElementById('myapp')
+		});
+		app.ports.loadSound.subscribe(function (args) {
+			loadSound(args[0], args[1]);
+		});
+		app.ports.playSound.subscribe(function (message) {
+			playSound(message);
+		});
+		app.ports.setVolume.subscribe(function (message) {
+			setVolume(message);
+		});
+
+	</script>
+</body>
+
+</html>
