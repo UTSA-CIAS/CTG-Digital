@@ -132,8 +132,16 @@ applyAction action game =
 
         ChooseNewDeck ->
             Deck.asList
-                |> (\( head, tail ) -> Random.uniform head tail)
-                |> Random.list 2
+                |> shuffle
+                |> Random.map
+                    (\l ->
+                        case l of
+                            h1 :: h2 :: _ ->
+                                [ h1, h2 ]
+
+                            _ ->
+                                []
+                    )
                 |> Random.map
                     (\list ->
                         ( game

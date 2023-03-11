@@ -10,9 +10,9 @@ type Deck
     | Savanna
 
 
-asList : ( Deck, List Deck )
+asList : List Deck
 asList =
-    ( Beach, [ Desert, Valley, Savanna, Savanna ] )
+    [ Beach, Desert, Valley, Savanna ]
 
 
 name : Deck -> String

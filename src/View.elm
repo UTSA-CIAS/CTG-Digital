@@ -8,7 +8,7 @@ import Game exposing (Game)
 import Game.Area
 import Game.Card
 import Game.Entity exposing (Entity)
-import Html exposing (Attribute, Html)
+import Html exposing (Attribute, Html, label)
 import Html.Attributes
 import Layout
 
@@ -158,7 +158,7 @@ viewDeckInfo attrs label cards =
             )
 
 
-viewGame : { selectCard : CardId -> msg, redraw : msg, restart : msg } -> Game -> Html msg
+viewGame : { selectCard : CardId -> msg, redraw : msg, restart : msg, toggleMute : msg, isMute : Bool } -> Game -> Html msg
 viewGame args game =
     [ [ Html.text "Waiting for Wind" |> Layout.heading1 [ Layout.contentCentered ]
       ]
@@ -243,9 +243,22 @@ viewGame args game =
       ]
         |> Layout.column [ Layout.spacing Config.spacing ]
     , [ viewStats game
-      , Html.text "Restart"
+      , [ Html.text "Restart"
             |> viewButton "Restart" (Just args.restart)
             |> Layout.el [ Layout.contentCentered, Layout.alignAtEnd ]
+        , (if args.isMute then
+            "🔊 Unmute"
+
+           else
+            "🔇 Mute"
+          )
+            |> (\label ->
+                    label
+                        |> Html.text
+                        |> viewButton label (Just args.toggleMute)
+               )
+        ]
+            |> Layout.column [ Layout.spacing Config.spacing ]
       ]
         |> Layout.row [ Layout.spaceBetween ]
     ]

@@ -46,6 +46,7 @@ type Msg
     | SelectDeck Deck
     | Restart
     | NewGamePlus
+    | ToggleMute
 
 
 init : () -> ( Model, Cmd Msg )
@@ -181,7 +182,7 @@ view model =
                 )
             |> Game.Area.toHtml [ Html.Attributes.style "width" "400px" ]
             |> Layout.el [ Layout.centerContent ]
-        , View.viewGame { selectCard = SelectCard, redraw = Redraw, restart = Restart } model.game
+        , View.viewGame { selectCard = SelectCard, redraw = Redraw, restart = Restart, toggleMute = ToggleMute, isMute = model.volume == 0 } model.game
             |> Layout.el [ Html.Attributes.style "width" "400px", Html.Attributes.style "height" "500px", Html.Attributes.style "border" "1px solid rgba(0,0,0,0.05)" ]
             |> Layout.withStack ([ Html.Attributes.style "height" "100%", Html.Attributes.style "width" "100%" ] ++ Layout.centered)
                 ((if Game.gameWon model.game then
@@ -386,7 +387,7 @@ update msg model =
             requestAction { model | animationToggle = not model.animationToggle }
 
         Redraw ->
-            ( { model | actions = Action.redraw ++ model.actions }, Cmd.none )
+            { model | actions = Action.redraw ++ model.actions } |> requestAction
 
         SelectDeck deck ->
             { model | actions = Action.chooseDeck deck ++ model.actions, selectableDecks = [] }
@@ -401,6 +402,21 @@ update msg model =
                 |> (\m -> { m | reachedAfrica = True })
             , Cmd.none
             )
+
+        ToggleMute ->
+            if model.volume == 0 then
+                ( { model
+                    | volume = 25
+                  }
+                , setVolume 25
+                )
+
+            else
+                ( { model
+                    | volume = 0
+                  }
+                , setVolume 0
+                )
 
 
 subscriptions : Model -> Sub Msg

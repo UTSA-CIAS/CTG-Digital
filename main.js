@@ -6004,10 +6004,8 @@ var $author$project$Event$Win = {$: 'Win'};
 var $author$project$Deck$Desert = {$: 'Desert'};
 var $author$project$Deck$Savanna = {$: 'Savanna'};
 var $author$project$Deck$Valley = {$: 'Valley'};
-var $author$project$Deck$asList = _Utils_Tuple2(
-	$author$project$Deck$Beach,
-	_List_fromArray(
-		[$author$project$Deck$Desert, $author$project$Deck$Valley, $author$project$Deck$Savanna, $author$project$Deck$Savanna]));
+var $author$project$Deck$asList = _List_fromArray(
+	[$author$project$Deck$Beach, $author$project$Deck$Desert, $author$project$Deck$Valley, $author$project$Deck$Savanna]);
 var $author$project$Card$BigPredator = {$: 'BigPredator'};
 var $author$project$Card$Eagle = {$: 'Eagle'};
 var $author$project$Card$Friend = {$: 'Friend'};
@@ -6137,6 +6135,30 @@ var $author$project$Game$gameWon = function (game) {
 	return game.remainingRests <= 0;
 };
 var $elm$core$Basics$ge = _Utils_ge;
+var $elm$core$Tuple$pair = F2(
+	function (a, b) {
+		return _Utils_Tuple2(a, b);
+	});
+var $elm$core$Basics$abs = function (n) {
+	return (n < 0) ? (-n) : n;
+};
+var $elm$random$Random$float = F2(
+	function (a, b) {
+		return $elm$random$Random$Generator(
+			function (seed0) {
+				var seed1 = $elm$random$Random$next(seed0);
+				var range = $elm$core$Basics$abs(b - a);
+				var n1 = $elm$random$Random$peel(seed1);
+				var n0 = $elm$random$Random$peel(seed0);
+				var lo = (134217727 & n1) * 1.0;
+				var hi = (67108863 & n0) * 1.0;
+				var val = ((hi * 134217728.0) + lo) / 9007199254740992.0;
+				var scaled = (val * range) + a;
+				return _Utils_Tuple2(
+					scaled,
+					$elm$random$Random$next(seed1));
+			});
+	});
 var $elm$random$Random$listHelp = F4(
 	function (revList, n, gen, seed) {
 		listHelp:
@@ -6167,30 +6189,6 @@ var $elm$random$Random$list = F2(
 				return A4($elm$random$Random$listHelp, _List_Nil, n, gen, seed);
 			});
 	});
-var $elm$core$Tuple$pair = F2(
-	function (a, b) {
-		return _Utils_Tuple2(a, b);
-	});
-var $elm$core$Basics$abs = function (n) {
-	return (n < 0) ? (-n) : n;
-};
-var $elm$random$Random$float = F2(
-	function (a, b) {
-		return $elm$random$Random$Generator(
-			function (seed0) {
-				var seed1 = $elm$random$Random$next(seed0);
-				var range = $elm$core$Basics$abs(b - a);
-				var n1 = $elm$random$Random$peel(seed1);
-				var n0 = $elm$random$Random$peel(seed0);
-				var lo = (134217727 & n1) * 1.0;
-				var hi = (67108863 & n0) * 1.0;
-				var val = ((hi * 134217728.0) + lo) / 9007199254740992.0;
-				var scaled = (val * range) + a;
-				return _Utils_Tuple2(
-					scaled,
-					$elm$random$Random$next(seed1));
-			});
-	});
 var $elm$core$Tuple$second = function (_v0) {
 	var y = _v0.b;
 	return y;
@@ -6217,59 +6215,6 @@ var $elm$core$List$singleton = function (value) {
 	return _List_fromArray(
 		[value]);
 };
-var $elm$random$Random$addOne = function (value) {
-	return _Utils_Tuple2(1, value);
-};
-var $elm$random$Random$getByWeight = F3(
-	function (_v0, others, countdown) {
-		getByWeight:
-		while (true) {
-			var weight = _v0.a;
-			var value = _v0.b;
-			if (!others.b) {
-				return value;
-			} else {
-				var second = others.a;
-				var otherOthers = others.b;
-				if (_Utils_cmp(
-					countdown,
-					$elm$core$Basics$abs(weight)) < 1) {
-					return value;
-				} else {
-					var $temp$_v0 = second,
-						$temp$others = otherOthers,
-						$temp$countdown = countdown - $elm$core$Basics$abs(weight);
-					_v0 = $temp$_v0;
-					others = $temp$others;
-					countdown = $temp$countdown;
-					continue getByWeight;
-				}
-			}
-		}
-	});
-var $elm$core$List$sum = function (numbers) {
-	return A3($elm$core$List$foldl, $elm$core$Basics$add, 0, numbers);
-};
-var $elm$random$Random$weighted = F2(
-	function (first, others) {
-		var normalize = function (_v0) {
-			var weight = _v0.a;
-			return $elm$core$Basics$abs(weight);
-		};
-		var total = normalize(first) + $elm$core$List$sum(
-			A2($elm$core$List$map, normalize, others));
-		return A2(
-			$elm$random$Random$map,
-			A2($elm$random$Random$getByWeight, first, others),
-			A2($elm$random$Random$float, 0, total));
-	});
-var $elm$random$Random$uniform = F2(
-	function (value, valueList) {
-		return A2(
-			$elm$random$Random$weighted,
-			$elm$random$Random$addOne(value),
-			A2($elm$core$List$map, $elm$random$Random$addOne, valueList));
-	});
 var $elm$core$Maybe$withDefault = F2(
 	function (_default, maybe) {
 		if (maybe.$ === 'Just') {
@@ -6378,13 +6323,19 @@ var $author$project$Game$applyAction = F2(
 								]));
 					},
 					A2(
-						$elm$random$Random$list,
-						2,
-						function (_v3) {
-							var head = _v3.a;
-							var tail = _v3.b;
-							return A2($elm$random$Random$uniform, head, tail);
-						}($author$project$Deck$asList)));
+						$elm$random$Random$map,
+						function (l) {
+							if (l.b && l.b.b) {
+								var h1 = l.a;
+								var _v4 = l.b;
+								var h2 = _v4.a;
+								return _List_fromArray(
+									[h1, h2]);
+							} else {
+								return _List_Nil;
+							}
+						},
+						$author$project$Game$shuffle($author$project$Deck$asList)));
 			case 'NewDeck':
 				var deck = action.a;
 				return $elm$random$Random$constant(
@@ -6427,10 +6378,10 @@ var $author$project$Game$applyAction = F2(
 				var amount = action.a;
 				var trueAction = action.b;
 				var falseAction = action.c;
-				var _v4 = (_Utils_cmp(game.food, amount) > -1) ? trueAction : falseAction;
-				if (_v4.b) {
-					var head = _v4.a;
-					var tail = _v4.b;
+				var _v5 = (_Utils_cmp(game.food, amount) > -1) ? trueAction : falseAction;
+				if (_v5.b) {
+					var head = _v5.a;
+					var tail = _v5.b;
 					return A2(
 						$elm$random$Random$map,
 						$elm$core$Tuple$mapSecond(
@@ -6636,13 +6587,12 @@ var $author$project$Main$update = F2(
 						model,
 						{animationToggle: !model.animationToggle}));
 			case 'Redraw':
-				return _Utils_Tuple2(
+				return $author$project$Main$requestAction(
 					_Utils_update(
 						model,
 						{
 							actions: _Utils_ap($author$project$Action$redraw, model.actions)
-						}),
-					$elm$core$Platform$Cmd$none);
+						}));
 			case 'SelectDeck':
 				var deck = msg.a;
 				return A2(
@@ -6667,7 +6617,7 @@ var $author$project$Main$update = F2(
 							})));
 			case 'Restart':
 				return $author$project$Main$restart(model);
-			default:
+			case 'NewGamePlus':
 				return _Utils_Tuple2(
 					function (m) {
 						return _Utils_update(
@@ -6684,6 +6634,16 @@ var $author$project$Main$update = F2(
 								}(model.game)
 							})),
 					$elm$core$Platform$Cmd$none);
+			default:
+				return (!model.volume) ? _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{volume: 25}),
+					$author$project$Main$setVolume(25)) : _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{volume: 0}),
+					$author$project$Main$setVolume(0));
 		}
 	});
 var $author$project$Main$NewGamePlus = {$: 'NewGamePlus'};
@@ -6695,6 +6655,7 @@ var $author$project$Main$SelectCard = function (a) {
 var $author$project$Main$SelectDeck = function (a) {
 	return {$: 'SelectDeck', a: a};
 };
+var $author$project$Main$ToggleMute = {$: 'ToggleMute'};
 var $elm$virtual_dom$VirtualDom$attribute = F2(
 	function (key, value) {
 		return A2(
@@ -8280,14 +8241,31 @@ var $author$project$View$viewGame = F2(
 						[
 							$author$project$View$viewStats(game),
 							A2(
-							$Orasund$elm_layout$Layout$el,
+							$Orasund$elm_layout$Layout$column,
 							_List_fromArray(
-								[$Orasund$elm_layout$Layout$contentCentered, $Orasund$elm_layout$Layout$alignAtEnd]),
-							A3(
-								$author$project$View$viewButton,
-								'Restart',
-								$elm$core$Maybe$Just(args.restart),
-								$elm$html$Html$text('Restart')))
+								[
+									$Orasund$elm_layout$Layout$spacing($author$project$Config$spacing)
+								]),
+							_List_fromArray(
+								[
+									A2(
+									$Orasund$elm_layout$Layout$el,
+									_List_fromArray(
+										[$Orasund$elm_layout$Layout$contentCentered, $Orasund$elm_layout$Layout$alignAtEnd]),
+									A3(
+										$author$project$View$viewButton,
+										'Restart',
+										$elm$core$Maybe$Just(args.restart),
+										$elm$html$Html$text('Restart'))),
+									function (label) {
+									return A3(
+										$author$project$View$viewButton,
+										label,
+										$elm$core$Maybe$Just(args.toggleMute),
+										$elm$html$Html$text(label));
+								}(
+									args.isMute ? '🔊 Unmute' : '🔇 Mute')
+								]))
 						]))
 				]));
 	});
@@ -8618,7 +8596,7 @@ var $author$project$Main$view = function (model) {
 						]),
 					A2(
 						$author$project$View$viewGame,
-						{redraw: $author$project$Main$Redraw, restart: $author$project$Main$Restart, selectCard: $author$project$Main$SelectCard},
+						{isMute: !model.volume, redraw: $author$project$Main$Redraw, restart: $author$project$Main$Restart, selectCard: $author$project$Main$SelectCard, toggleMute: $author$project$Main$ToggleMute},
 						model.game))),
 				A3(
 				$elm$html$Html$node,
