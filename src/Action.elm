@@ -6,6 +6,7 @@ import Deck exposing (Deck)
 
 type Action
     = AddFoodAndThen Int Action
+    | IfEnoughFoodAndThen Int (List Action) (List Action)
     | LooseBirdAndThen Action
     | DrawCard
     | Shuffle
@@ -21,7 +22,7 @@ fromCard card =
             [ AddFoodAndThen 1 DrawCard ]
 
         Wind ->
-            [ AddFoodAndThen -1 RemoveDeck ]
+            [ IfEnoughFoodAndThen 1 [ AddFoodAndThen -1 RemoveDeck ] [ DiscardCard, DrawCard ] ]
 
         Predator ->
             [ LooseBirdAndThen DrawCard ]

@@ -64,7 +64,7 @@ view model =
             |> Layout.withStack []
                 ((if Game.gameWon model.game then
                     ( [ Html.Attributes.style "background-color" "rgba(158,228,147,0.5)" ]
-                    , Html.text "You have reached Afrika. Your Journey is over"
+                    , Html.text "You have reached Africa. Your Journey is over"
                         |> Layout.el []
                     )
                         |> Just
@@ -165,11 +165,11 @@ button:active {
     }
 
 
-updateGame : (Game -> Generator Game) -> Model -> Model
+updateGame : (Game -> Generator ( Game, List Action )) -> Model -> Model
 updateGame fun model =
     Random.step (fun model.game) model.seed
-        |> (\( game, seed ) ->
-                { model | game = game, seed = seed }
+        |> (\( ( game, actions ), seed ) ->
+                { model | game = game, seed = seed, actions = actions ++ model.actions }
            )
 
 
@@ -192,7 +192,16 @@ update msg model =
             )
 
         SelectCard cardId ->
-            ( model |> updateGame (Game.playCard cardId)
+            ( { model
+                | actions =
+                    (model.game.cards
+                        |> Dict.get cardId
+                        |> Maybe.map Action.fromCard
+                        |> Maybe.withDefault []
+                    )
+                        ++ model.actions
+              }
+                |> requestAction
             , Cmd.none
             )
 

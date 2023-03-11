@@ -34,8 +34,8 @@ init =
     , deck = []
     , deckType = Deck.Beach
     , ground = Nothing
-    , food = 10
-    , flockSize = 10
+    , food = 3
+    , flockSize = 3
     , remainingRests = Config.totalDistance
     }
 
@@ -72,7 +72,7 @@ drawCard game =
             game
 
 
-applyAction : Action -> Game -> Generator Game
+applyAction : Action -> Game -> Generator ( Game, List Action )
 applyAction action game =
     case action of
         AddFoodAndThen amount action2 ->
@@ -80,7 +80,7 @@ applyAction action game =
                 |> applyAction action2
 
         DrawCard ->
-            drawCard game |> Random.constant
+            ( drawCard game, [] ) |> Random.constant
 
         LooseBirdAndThen action2 ->
             { game | flockSize = game.flockSize - 1 }
@@ -89,44 +89,55 @@ applyAction action game =
         Shuffle ->
             game.deck
                 |> shuffle
-                |> Random.map (\deck -> { game | deck = deck })
+                |> Random.map (\deck -> ( { game | deck = deck }, [] ))
 
         RemoveDeck ->
             Random.constant
-                { game
+                ( { game
                     | deck = []
                     , ground = Nothing
                     , remainingRests = game.remainingRests - 1
                     , cards = Dict.empty
-                }
+                  }
+                , []
+                )
 
         NewDeck deck ->
             Random.constant
-                { game
+                ( { game
                     | deck = List.range 0 (List.length (Deck.cards deck) - 1)
                     , deckType = deck
                     , cards =
                         Deck.cards deck
                             |> List.indexedMap Tuple.pair
                             |> Dict.fromList
-                }
+                  }
+                , []
+                )
 
         DiscardCard ->
-            { game
+            ( { game
                 | deck = game.deck ++ (game.ground |> Maybe.map List.singleton |> Maybe.withDefault [])
                 , ground = Nothing
-            }
+              }
+            , []
+            )
                 |> Random.constant
 
+        IfEnoughFoodAndThen amount trueAction falseAction ->
+            case
+                if game.food >= amount then
+                    trueAction
 
-playCard : CardId -> Game -> Generator Game
-playCard cardId game =
-    game.cards
-        |> Dict.get cardId
-        |> Maybe.map Action.fromCard
-        |> Maybe.withDefault []
-        |> List.foldl (\action -> Random.andThen (applyAction action))
-            (Random.constant game)
+                else
+                    falseAction
+            of
+                head :: tail ->
+                    applyAction head game
+                        |> Random.map (Tuple.mapSecond (\l -> l ++ tail))
+
+                [] ->
+                    Random.constant ( game, [] )
 
 
 getCardsFrom : Game -> List CardId -> List ( CardId, Card )
