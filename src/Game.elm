@@ -5,6 +5,7 @@ import Card exposing (Card, CardId)
 import Config
 import Deck exposing (Deck)
 import Dict exposing (Dict)
+import Event exposing (Event)
 import Random exposing (Generator)
 
 
@@ -72,7 +73,7 @@ drawCard game =
             game
 
 
-applyAction : Action -> Game -> Generator ( Game, List Action )
+applyAction : Action -> Game -> Generator ( Game, List Event )
 applyAction action game =
     case action of
         AddFoodAndThen amount action2 ->
@@ -92,15 +93,20 @@ applyAction action game =
                 |> Random.map (\deck -> ( { game | deck = deck }, [] ))
 
         RemoveDeck ->
-            Random.constant
-                ( { game
-                    | deck = []
-                    , ground = Nothing
-                    , remainingRests = game.remainingRests - 1
-                    , cards = Dict.empty
-                  }
-                , []
-                )
+            Deck.asList
+                |> (\( head, tail ) -> Random.uniform head tail)
+                |> Random.list 2
+                |> Random.map
+                    (\list ->
+                        ( { game
+                            | deck = []
+                            , ground = Nothing
+                            , remainingRests = game.remainingRests - 1
+                            , cards = Dict.empty
+                          }
+                        , [ Event.ChooseDeck list ]
+                        )
+                    )
 
         NewDeck deck ->
             Random.constant
@@ -134,7 +140,7 @@ applyAction action game =
             of
                 head :: tail ->
                     applyAction head game
-                        |> Random.map (Tuple.mapSecond (\l -> l ++ tail))
+                        |> Random.map (Tuple.mapSecond (\l -> l ++ [ Event.AddActions tail ]))
 
                 [] ->
                     Random.constant ( game, [] )

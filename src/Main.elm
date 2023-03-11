@@ -6,6 +6,7 @@ import Card exposing (CardId)
 import Config
 import Deck exposing (Deck)
 import Dict
+import Event exposing (Event(..))
 import Game exposing (Game)
 import Game.Area
 import Game.Entity
@@ -30,6 +31,7 @@ type alias Model =
     { game : Game
     , volume : Int
     , seed : Seed
+    , selectableDecks : List Deck
     , actions : List Action
     }
 
@@ -47,6 +49,7 @@ init () =
     ( { volume = 25
       , game = Game.init
       , seed = Random.initialSeed 42
+      , selectableDecks = [ Deck.Beach ]
       , actions = []
       }
     , Cmd.batch
@@ -60,8 +63,8 @@ view model =
     { title = "Waiting 4 Wind"
     , body =
         [ View.viewGame { selectCard = SelectCard, redraw = Redraw } model.game
-            |> Layout.el [ Html.Attributes.style "width" "400px", Html.Attributes.style "height" "400px", Html.Attributes.style "border" "1px solid rgba(0,0,0,0.2)" ]
-            |> Layout.withStack []
+            |> Layout.el [ Html.Attributes.style "width" "400px", Html.Attributes.style "height" "500px", Html.Attributes.style "border" "1px solid rgba(0,0,0,0.2)" ]
+            |> Layout.withStack ([ Html.Attributes.style "height" "100%", Html.Attributes.style "width" "100%" ] ++ Layout.centered)
                 ((if Game.gameWon model.game then
                     ( [ Html.Attributes.style "background-color" "rgba(158,228,147,0.5)" ]
                     , Html.text "You have reached Africa. Your Journey is over"
@@ -77,10 +80,10 @@ view model =
                         |> Just
 
                   else if Dict.isEmpty model.game.cards then
-                    ( [ Html.Attributes.style "background-color" "rgba(50,203,255,0.5)" ]
+                    ( [ Html.Attributes.style "background-color" "rgba(191,219,247,1)" ]
                     , [ Html.text "Where should your flock land?"
                             |> Layout.heading2 [ Html.Attributes.style "padding" (String.fromFloat (Config.spacing + 2) ++ "px 0") ]
-                      , Deck.asList
+                      , model.selectableDecks
                             |> List.map
                                 (\deck ->
                                     View.viewCardBack
@@ -91,10 +94,10 @@ view model =
                                         |> View.viewDeck (Deck.cards deck)
                                         |> Game.Entity.toHtml []
                                 )
-                            |> Layout.row [ Layout.spacing Config.spacing ]
+                            |> Layout.row [ Layout.spacing Config.spacing, Layout.contentCentered ]
                       , View.viewStats model.game
                       ]
-                        |> Layout.column [ Layout.spaceBetween, Html.Attributes.style "height" "100%" ]
+                        |> Layout.column [ Layout.spacing Config.spacing ]
                     )
                         |> Just
 
@@ -103,12 +106,14 @@ view model =
                  )
                     |> Maybe.map
                         (\( attrs, content ) ->
-                            [ ( []
+                            [ ( [ Html.Attributes.style "width" "100%"
+                                , Html.Attributes.style "height" "100%"
+                                ]
                               , content
                                     |> Layout.el
                                         (Layout.centered
-                                            ++ [ Html.Attributes.style "width" "400px"
-                                               , Html.Attributes.style "height" "400px"
+                                            ++ [ Html.Attributes.style "width" "100%"
+                                               , Html.Attributes.style "height" "100%"
                                                , Html.Attributes.style "backdrop-filter" "blur(4px)"
                                                , Html.Attributes.style "z-index" "100"
                                                , Html.Attributes.style "position" "relative"
@@ -120,7 +125,6 @@ view model =
                         )
                     |> Maybe.withDefault []
                 )
-            |> Layout.el (Html.Attributes.style "height" "100%" :: Layout.centered)
         , Html.node "style"
             []
             [ """
@@ -165,12 +169,24 @@ button:active {
     }
 
 
-updateGame : (Game -> Generator ( Game, List Action )) -> Model -> Model
+updateGame : (Game -> Generator ( Game, List Event )) -> Model -> Model
 updateGame fun model =
     Random.step (fun model.game) model.seed
-        |> (\( ( game, actions ), seed ) ->
-                { model | game = game, seed = seed, actions = actions ++ model.actions }
+        |> (\( ( game, events ), seed ) ->
+                events
+                    |> List.foldl applyEvent
+                        { model | game = game, seed = seed }
            )
+
+
+applyEvent : Event -> Model -> Model
+applyEvent event model =
+    case event of
+        AddActions actions ->
+            { model | actions = actions ++ model.actions }
+
+        ChooseDeck decks ->
+            { model | selectableDecks = decks }
 
 
 requestAction : Model -> Model

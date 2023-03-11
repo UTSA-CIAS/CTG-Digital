@@ -22,7 +22,7 @@ fromCard card =
             [ AddFoodAndThen 1 DrawCard ]
 
         Wind ->
-            [ IfEnoughFoodAndThen 1 [ AddFoodAndThen -1 RemoveDeck ] [ DiscardCard, DrawCard ] ]
+            [ RemoveDeck ]
 
         Predator ->
             [ LooseBirdAndThen DrawCard ]

@@ -9,9 +9,9 @@ type Deck
     | Valley
 
 
-asList : List Deck
+asList : ( Deck, List Deck )
 asList =
-    [ Beach, Desert, Valley ]
+    ( Beach, [ Desert, Valley ] )
 
 
 name : Deck -> String
@@ -31,35 +31,35 @@ primaryColor : Deck -> String
 primaryColor deck =
     case deck of
         Beach ->
-            "#92DCE5"
+            "#5C6784"
 
         Desert ->
             "#FCBF49"
 
         Valley ->
-            "#6C91BF"
+            "#7A9E9F"
 
 
 secondaryColor : Deck -> String
 secondaryColor deck =
     case deck of
         Beach ->
-            "#F8F7F9"
+            "#98C1D9"
 
         Desert ->
             "#EAE2B7"
 
         Valley ->
-            "#5FB0B7"
+            "#B8D8D8"
 
 
 cards : Deck -> List Card
 cards deck =
     case deck of
         Beach ->
-            [ List.repeat 4 Card.Wind
-            , List.repeat 5 Card.Food
-            , List.repeat 1 Card.Predator
+            [ List.repeat 2 Card.Wind
+            , List.repeat 6 Card.Food
+            , List.repeat 2 Card.Predator
             ]
                 |> List.concat
 
