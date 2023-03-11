@@ -2,4 +2,4 @@
 
 ## Run
 
-    elm-live src/Main.elm -- -output=main.js
+    elm-live src/Main.elm -- --output=main.js

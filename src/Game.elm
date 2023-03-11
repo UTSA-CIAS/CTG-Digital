@@ -9,7 +9,6 @@ import Random exposing (Generator)
 type alias Game =
     { cards : Dict CardId Card
     , deck : List CardId
-    , flying : List CardId
     , ground : Maybe CardId
     , food : Int
     , flockSize : Int
@@ -18,9 +17,9 @@ type alias Game =
 
 initialCards : Dict CardId Card
 initialCards =
-    [ List.repeat 4 Card.Wind
-    , List.repeat 8 Card.Food
-    , List.repeat 8 Card.Predator
+    [ List.repeat 2 Card.Wind
+    , List.repeat 4 Card.Food
+    , List.repeat 4 Card.Predator
     ]
         |> List.concat
         |> List.indexedMap Tuple.pair
@@ -31,7 +30,6 @@ init : Game
 init =
     { cards = initialCards
     , deck = List.range 0 (Dict.size initialCards - 1)
-    , flying = []
     , ground = Nothing
     , food = 10
     , flockSize = 10
@@ -40,7 +38,7 @@ init =
 
 gameOver : Game -> Bool
 gameOver game =
-    game.food == 0 || game.flockSize == 0
+    game.food < 0 || game.flockSize == 0
 
 
 shuffle : List a -> Generator (List a)
@@ -68,14 +66,16 @@ drawCard game =
 applyAction : Action -> Game -> Generator Game
 applyAction action game =
     case action of
-        AddFood amount ->
-            { game | food = game.food + amount } |> Random.constant
+        AddFoodAndThen amount action2 ->
+            { game | food = game.food + amount }
+                |> applyAction action2
 
         DrawCard ->
             drawCard game |> Random.constant
 
-        LooseBird ->
-            { game | flockSize = game.flockSize - 1 } |> Random.constant
+        LooseBirdAndThen action2 ->
+            { game | flockSize = game.flockSize - 1 }
+                |> applyAction action2
 
         Shuffle ->
             game.deck
@@ -88,6 +88,13 @@ applyAction action game =
         NewDeck ->
             Random.constant { game | deck = List.range 0 (Dict.size initialCards - 1) }
 
+        DiscardCard ->
+            { game
+                | deck = game.deck ++ (game.ground |> Maybe.map List.singleton |> Maybe.withDefault [])
+                , ground = Nothing
+            }
+                |> Random.constant
+
 
 playCard : CardId -> Game -> Generator Game
 playCard cardId game =
@@ -95,9 +102,8 @@ playCard cardId game =
         |> Dict.get cardId
         |> Maybe.map Action.fromCard
         |> Maybe.withDefault []
-        |> (::) Action.DrawCard
         |> List.foldl (\action -> Random.andThen (applyAction action))
-            (Random.constant { game | flying = game.flying |> List.filter ((/=) cardId) })
+            (Random.constant game)
 
 
 getCardsFrom : Game -> List CardId -> List ( CardId, Card )

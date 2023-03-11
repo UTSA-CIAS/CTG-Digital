@@ -3,7 +3,7 @@ module Config exposing (..)
 
 cardHeight : Float
 cardHeight =
-    100
+    150
 
 
 cardWidth : Float
@@ -13,4 +13,14 @@ cardWidth =
 
 spacing : Float
 spacing =
-    16
+    8
+
+
+birdEmoji : String
+birdEmoji =
+    "🐦"
+
+
+foodEmoji : String
+foodEmoji =
+    "\u{1FAB1}"

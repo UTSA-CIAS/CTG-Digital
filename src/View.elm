@@ -22,10 +22,20 @@ viewCard attributes faceUp c =
         )
         { front =
             (\attrs ->
-                [ Card.name c |> Html.text |> Game.Card.element []
-                , Card.emoji c |> Html.text |> Game.Card.element [ Html.Attributes.style "font-size" "40px" ]
+                [ Card.emoji c
+                    |> Html.text
+                    |> Layout.el
+                        (Html.Attributes.style "font-size" "100px"
+                            :: (case c of
+                                    Card.Food ->
+                                        [ Layout.alignAtCenter ]
+
+                                    _ ->
+                                        Layout.centered
+                               )
+                        )
                 ]
-                    |> Game.Card.default (attrs ++ [ Html.Attributes.style "height" (String.fromFloat Config.cardHeight ++ "px") ])
+                    |> Game.Card.default (attrs ++ [ Layout.centerContent, Html.Attributes.style "height" (String.fromFloat Config.cardHeight ++ "px") ])
             )
                 |> Game.Entity.new
         , back =
@@ -48,59 +58,103 @@ viewEmptyCard name =
     )
 
 
-viewGame : { selectCard : CardId -> msg } -> Game -> Html msg
+viewDeckInfo : List (Attribute msg) -> List ( CardId, Card ) -> Html msg
+viewDeckInfo attrs cards =
+    [ Html.text "Remaining:" |> Layout.el []
+    , cards
+        |> List.map (\( _, card ) -> Card.emoji card)
+        |> List.sort
+        |> String.concat
+        |> Html.text
+    ]
+        |> Layout.column [ Html.Attributes.style "padding" "32px 8px 8px 8px", Layout.spacing 4 ]
+        |> Layout.el
+            (attrs
+                ++ [ Html.Attributes.style "background-color" "white"
+                   , Html.Attributes.style "width" (String.fromFloat Config.cardWidth ++ "px")
+                   , Html.Attributes.style "font-size" "0.8em"
+                   , Html.Attributes.style "border" "1px solid rgba(0,0,0,0.2)"
+                   , Html.Attributes.style "border-radius" " 0 0 16px 16px"
+                   , Html.Attributes.style "text-align" "center"
+                   ]
+            )
+
+
+viewGame : { selectCard : CardId -> msg, redraw : msg } -> Game -> Html msg
 viewGame args game =
-    [ Html.text "Waiting for Wind" |> Layout.el []
-    , [ game.flying
-            |> Game.getCardsFrom game
-            |> List.map
-                (\( cardId, card ) ->
-                    card
-                        |> viewCard
-                            (Layout.asButton
-                                { onPress = Just (args.selectCard cardId)
-                                , label = "Select " ++ Card.name card
-                                }
-                            )
-                            True
-                        |> Game.Entity.map (Tuple.pair (String.fromInt cardId))
-                )
-            |> Game.Area.mapPosition (\i _ -> Tuple.mapFirst ((+) (toFloat i * (Config.spacing * Config.cardWidth) + Config.spacing + Config.cardWidth)))
-            |> Game.Area.mapZIndex (\_ _ -> (+) 50)
-      , game.ground
+    [ Html.text "Waiting for Wind" |> Layout.heading1 [ Layout.centerContent ]
+    , [ [ [ game.ground
+                |> Maybe.andThen (\cardId -> Dict.get cardId game.cards |> Maybe.map (Tuple.pair cardId))
+                |> Maybe.map
+                    (\( cardId, card ) ->
+                        card
+                            |> viewCard
+                                (Layout.asButton
+                                    { onPress = Just (args.selectCard cardId)
+                                    , label = "Select " ++ Card.name card
+                                    }
+                                )
+                                True
+                            |> Game.Entity.map (Tuple.pair (String.fromInt cardId))
+                            |> Game.Entity.move ( Config.spacing + Config.cardWidth, 0 )
+                    )
+                |> Maybe.map List.singleton
+                |> Maybe.withDefault []
+          , game.deck
+                |> Game.getCardsFrom game
+                |> List.reverse
+                |> List.map
+                    (\( cardId, card ) ->
+                        card
+                            |> viewCard [] False
+                            |> Game.Entity.map (Tuple.pair (String.fromInt cardId))
+                    )
+                |> Game.Area.mapPosition (\i _ -> Tuple.mapSecond ((+) (toFloat i * -2)))
+                |> Game.Area.pileAbove ( 0, 0 ) (viewEmptyCard "Deck")
+          , [ (\attrs ->
+                game.deck
+                    |> Game.getCardsFrom game
+                    |> viewDeckInfo attrs
+              )
+                |> Tuple.pair "DeckInfo"
+                |> Game.Entity.new
+                |> Game.Entity.move ( -1, Config.cardHeight - 32 + 4 )
+            ]
+          ]
+            |> List.concat
+            |> Game.Area.toHtml
+                [ Html.Attributes.style "height" (String.fromFloat Config.cardHeight ++ "px")
+                , Html.Attributes.style "width" (String.fromFloat (Config.cardWidth * 2 + Config.spacing) ++ "px")
+                ]
+        , game.ground
             |> Maybe.andThen (\cardId -> Dict.get cardId game.cards |> Maybe.map (Tuple.pair cardId))
             |> Maybe.map
                 (\( cardId, card ) ->
-                    card
-                        |> viewCard
-                            (Layout.asButton
-                                { onPress = Just (args.selectCard cardId)
-                                , label = "Select " ++ Card.name card
-                                }
-                            )
-                            True
-                        |> Game.Entity.map (Tuple.pair (String.fromInt cardId))
-                        |> Game.Entity.move ( Config.spacing + Config.cardWidth, Config.cardHeight )
+                    [ Card.name card |> Html.text |> Layout.el [ Html.Attributes.style "font-weight" "bold" ]
+                    , Card.description card |> Html.text
+                    ]
+                        |> Layout.column []
                 )
-            |> Maybe.map List.singleton
-            |> Maybe.withDefault []
-      , game.deck
-            |> Game.getCardsFrom game
-            |> List.reverse
-            |> List.map
-                (\( cardId, card ) ->
-                    card
-                        |> viewCard [] False
-                        |> Game.Entity.map (Tuple.pair (String.fromInt cardId))
-                )
-            |> Game.Area.mapPosition (\i _ -> Tuple.mapSecond ((+) (toFloat i * -2)))
-            |> Game.Area.pileAbove ( 0, Config.cardHeight ) (viewEmptyCard "Deck")
+            |> Maybe.withDefault Layout.none
+            |> Layout.el [ Html.Attributes.style "width" (String.fromFloat Config.cardWidth ++ "px") ]
+        ]
+            |> Layout.row [ Layout.centerContent, Layout.spacing Config.spacing ]
+      , viewButton ("Redraw for 1 " ++ Config.foodEmoji) (Just args.redraw)
+            |> Layout.el [ Layout.contentCentered ]
       ]
-        |> List.concat
-        |> Game.Area.toHtml [ Html.Attributes.style "height" (String.fromFloat (Config.cardHeight * 2) ++ "px") ]
-    , [ "Birds in your flock: " ++ (List.repeat game.flockSize "🐦" |> String.concat) |> Html.text |> Layout.el []
-      , "Food:" ++ (List.repeat game.food "\u{1FAB1}" |> String.concat) |> Html.text |> Layout.el []
+        |> Layout.column [ Layout.spacing Config.spacing ]
+    , [ "Birds in your flock: " ++ (List.repeat game.flockSize Config.birdEmoji |> String.concat) |> Html.text |> Layout.el []
+      , "Food:" ++ (List.repeat game.food Config.foodEmoji |> String.concat) |> Html.text |> Layout.el []
       ]
-        |> Layout.column [ Layout.spacing 8 ]
+        |> Layout.column [ Layout.spacing Config.spacing ]
     ]
-        |> Layout.column [ Layout.spaceBetween ]
+        |> Layout.column [ Layout.spaceBetween, Layout.fill ]
+
+
+viewButton : String -> Maybe msg -> Html msg
+viewButton label onClick =
+    Html.text label
+        |> Layout.buttonEl { onPress = onClick, label = label }
+            [ Html.Attributes.style "border" "1px solid rgba(0,0,0,0.2)"
+            , Html.Attributes.style "border-radius" "4px"
+            ]

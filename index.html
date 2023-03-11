@@ -5613,9 +5613,9 @@ var $author$project$Game$initialCards = $elm$core$Dict$fromList(
 		$elm$core$List$concat(
 			_List_fromArray(
 				[
-					A2($elm$core$List$repeat, 4, $author$project$Card$Wind),
-					A2($elm$core$List$repeat, 8, $author$project$Card$Food),
-					A2($elm$core$List$repeat, 8, $author$project$Card$Predator)
+					A2($elm$core$List$repeat, 2, $author$project$Card$Wind),
+					A2($elm$core$List$repeat, 4, $author$project$Card$Food),
+					A2($elm$core$List$repeat, 4, $author$project$Card$Predator)
 				]))));
 var $elm$core$Dict$sizeHelp = F2(
 	function (n, dict) {
@@ -5644,7 +5644,6 @@ var $author$project$Game$init = {
 		0,
 		$elm$core$Dict$size($author$project$Game$initialCards) - 1),
 	flockSize: 10,
-	flying: _List_Nil,
 	food: 10,
 	ground: $elm$core$Maybe$Nothing
 };
@@ -5982,6 +5981,16 @@ var $author$project$Game$drawCard = function (game) {
 		return game;
 	}
 };
+var $elm$core$Maybe$map = F2(
+	function (f, maybe) {
+		if (maybe.$ === 'Just') {
+			var value = maybe.a;
+			return $elm$core$Maybe$Just(
+				f(value));
+		} else {
+			return $elm$core$Maybe$Nothing;
+		}
+	});
 var $elm$core$Basics$abs = function (n) {
 	return (n < 0) ? (-n) : n;
 };
@@ -6054,20 +6063,39 @@ var $author$project$Game$shuffle = function (list) {
 			$elm$core$List$length(list),
 			A2($elm$random$Random$float, 0, 1)));
 };
+var $elm$core$List$singleton = function (value) {
+	return _List_fromArray(
+		[value]);
+};
+var $elm$core$Maybe$withDefault = F2(
+	function (_default, maybe) {
+		if (maybe.$ === 'Just') {
+			var value = maybe.a;
+			return value;
+		} else {
+			return _default;
+		}
+	});
 var $author$project$Game$applyAction = F2(
 	function (action, game) {
 		switch (action.$) {
-			case 'AddFood':
+			case 'AddFoodAndThen':
 				var amount = action.a;
-				return $elm$random$Random$constant(
+				var action2 = action.b;
+				return A2(
+					$author$project$Game$applyAction,
+					action2,
 					_Utils_update(
 						game,
 						{food: game.food + amount}));
 			case 'DrawCard':
 				return $elm$random$Random$constant(
 					$author$project$Game$drawCard(game));
-			case 'LooseBird':
-				return $elm$random$Random$constant(
+			case 'LooseBirdAndThen':
+				var action2 = action.a;
+				return A2(
+					$author$project$Game$applyAction,
+					action2,
 					_Utils_update(
 						game,
 						{flockSize: game.flockSize - 1}));
@@ -6085,7 +6113,7 @@ var $author$project$Game$applyAction = F2(
 					_Utils_update(
 						game,
 						{deck: _List_Nil}));
-			default:
+			case 'NewDeck':
 				return $elm$random$Random$constant(
 					_Utils_update(
 						game,
@@ -6094,6 +6122,19 @@ var $author$project$Game$applyAction = F2(
 								$elm$core$List$range,
 								0,
 								$elm$core$Dict$size($author$project$Game$initialCards) - 1)
+						}));
+			default:
+				return $elm$random$Random$constant(
+					_Utils_update(
+						game,
+						{
+							deck: _Utils_ap(
+								game.deck,
+								A2(
+									$elm$core$Maybe$withDefault,
+									_List_Nil,
+									A2($elm$core$Maybe$map, $elm$core$List$singleton, game.ground))),
+							ground: $elm$core$Maybe$Nothing
 						}));
 		}
 	});
@@ -6111,63 +6152,37 @@ var $elm$random$Random$andThen = F2(
 				return genB(newSeed);
 			});
 	});
-var $elm$core$List$filter = F2(
-	function (isGood, list) {
-		return A3(
-			$elm$core$List$foldr,
-			F2(
-				function (x, xs) {
-					return isGood(x) ? A2($elm$core$List$cons, x, xs) : xs;
-				}),
-			_List_Nil,
-			list);
+var $author$project$Action$AddFoodAndThen = F2(
+	function (a, b) {
+		return {$: 'AddFoodAndThen', a: a, b: b};
 	});
-var $author$project$Action$AddFood = function (a) {
-	return {$: 'AddFood', a: a};
-};
 var $author$project$Action$EmptyDeck = {$: 'EmptyDeck'};
-var $author$project$Action$LooseBird = {$: 'LooseBird'};
+var $author$project$Action$LooseBirdAndThen = function (a) {
+	return {$: 'LooseBirdAndThen', a: a};
+};
 var $author$project$Action$NewDeck = {$: 'NewDeck'};
 var $author$project$Action$fromCard = function (card) {
 	switch (card.$) {
 		case 'Food':
 			return _List_fromArray(
 				[
-					$author$project$Action$AddFood(1)
+					A2($author$project$Action$AddFoodAndThen, 1, $author$project$Action$DrawCard)
 				]);
 		case 'Wind':
 			return _List_fromArray(
 				[
-					$author$project$Action$AddFood(-1),
-					$author$project$Action$EmptyDeck,
+					A2($author$project$Action$AddFoodAndThen, -1, $author$project$Action$EmptyDeck),
 					$author$project$Action$NewDeck,
-					$author$project$Action$Shuffle
+					$author$project$Action$Shuffle,
+					$author$project$Action$DrawCard
 				]);
 		default:
 			return _List_fromArray(
-				[$author$project$Action$LooseBird]);
+				[
+					$author$project$Action$LooseBirdAndThen($author$project$Action$DrawCard)
+				]);
 	}
 };
-var $elm$core$Maybe$map = F2(
-	function (f, maybe) {
-		if (maybe.$ === 'Just') {
-			var value = maybe.a;
-			return $elm$core$Maybe$Just(
-				f(value));
-		} else {
-			return $elm$core$Maybe$Nothing;
-		}
-	});
-var $elm$core$Basics$neq = _Utils_notEqual;
-var $elm$core$Maybe$withDefault = F2(
-	function (_default, maybe) {
-		if (maybe.$ === 'Just') {
-			var value = maybe.a;
-			return value;
-		} else {
-			return _default;
-		}
-	});
 var $author$project$Game$playCard = F2(
 	function (cardId, game) {
 		return A3(
@@ -6176,26 +6191,21 @@ var $author$project$Game$playCard = F2(
 				return $elm$random$Random$andThen(
 					$author$project$Game$applyAction(action));
 			},
-			$elm$random$Random$constant(
-				_Utils_update(
-					game,
-					{
-						flying: A2(
-							$elm$core$List$filter,
-							$elm$core$Basics$neq(cardId),
-							game.flying)
-					})),
+			$elm$random$Random$constant(game),
 			A2(
-				$elm$core$List$cons,
-				$author$project$Action$DrawCard,
+				$elm$core$Maybe$withDefault,
+				_List_Nil,
 				A2(
-					$elm$core$Maybe$withDefault,
-					_List_Nil,
-					A2(
-						$elm$core$Maybe$map,
-						$author$project$Action$fromCard,
-						A2($elm$core$Dict$get, cardId, game.cards)))));
+					$elm$core$Maybe$map,
+					$author$project$Action$fromCard,
+					A2($elm$core$Dict$get, cardId, game.cards))));
 	});
+var $author$project$Action$DiscardCard = {$: 'DiscardCard'};
+var $author$project$Action$redraw = _List_fromArray(
+	[
+		A2($author$project$Action$AddFoodAndThen, -1, $author$project$Action$DiscardCard),
+		$author$project$Action$DrawCard
+	]);
 var $author$project$Main$updateGame = F2(
 	function (fun, model) {
 		return function (_v0) {
@@ -6234,7 +6244,7 @@ var $author$project$Main$update = F2(
 						$author$project$Game$playCard(cardId),
 						model),
 					$elm$core$Platform$Cmd$none);
-			default:
+			case 'ActionRequested':
 				return _Utils_Tuple2(
 					function () {
 						var _v1 = model.actions;
@@ -6252,8 +6262,17 @@ var $author$project$Main$update = F2(
 						}
 					}(),
 					$elm$core$Platform$Cmd$none);
+			default:
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							actions: _Utils_ap($author$project$Action$redraw, model.actions)
+						}),
+					$elm$core$Platform$Cmd$none);
 		}
 	});
+var $author$project$Main$Redraw = {$: 'Redraw'};
 var $author$project$Main$SelectCard = function (a) {
 	return {$: 'SelectCard', a: a};
 };
@@ -6276,7 +6295,7 @@ var $Orasund$elm_layout$Layout$el = F2(
 				[content]));
 	});
 var $author$project$Game$gameOver = function (game) {
-	return (!game.food) || (!game.flockSize);
+	return (game.food < 0) || (!game.flockSize);
 };
 var $elm$virtual_dom$VirtualDom$node = function (tag) {
 	return _VirtualDom_node(
@@ -6340,8 +6359,10 @@ var $Orasund$elm_layout$Layout$asButton = function (args) {
 				},
 				args.onPress)));
 };
-var $author$project$Config$cardHeight = 100;
+var $author$project$Config$birdEmoji = '🐦';
+var $author$project$Config$cardHeight = 150;
 var $author$project$Config$cardWidth = ($author$project$Config$cardHeight * 2) / 3;
+var $Orasund$elm_layout$Layout$centerContent = A2($elm$html$Html$Attributes$style, 'justify-content', 'center');
 var $Orasund$elm_layout$Layout$column = function (attrs) {
 	return $elm$html$Html$div(
 		_Utils_ap(
@@ -6355,6 +6376,24 @@ var $Orasund$elm_layout$Layout$column = function (attrs) {
 var $elm$core$String$concat = function (strings) {
 	return A2($elm$core$String$join, '', strings);
 };
+var $author$project$Card$description = function (card) {
+	switch (card.$) {
+		case 'Wind':
+			return 'Remove 1 Food, then shuffle all discarded Cards into the deck.';
+		case 'Food':
+			return 'Add 1 Food';
+		default:
+			return 'Remove 1 Bird';
+	}
+};
+var $Orasund$elm_layout$Layout$fillPortion = function (n) {
+	return A2(
+		$elm$html$Html$Attributes$style,
+		'flex',
+		$elm$core$String$fromInt(n));
+};
+var $Orasund$elm_layout$Layout$fill = $Orasund$elm_layout$Layout$fillPortion(1);
+var $author$project$Config$foodEmoji = '\uD83E\uDEB1';
 var $elm$core$String$fromFloat = _String_fromNumber;
 var $elm$core$List$maybeCons = F3(
 	function (f, mx, xs) {
@@ -6386,6 +6425,18 @@ var $author$project$Game$getCardsFrom = F2(
 			},
 			list);
 	});
+var $elm$html$Html$h1 = _VirtualDom_node('h1');
+var $Orasund$elm_layout$Layout$heading1 = F2(
+	function (attrs, content) {
+		return A2(
+			$elm$html$Html$h1,
+			A2(
+				$elm$core$List$cons,
+				A2($elm$html$Html$Attributes$style, 'display', 'flex'),
+				attrs),
+			_List_fromArray(
+				[content]));
+	});
 var $Orasund$elm_card_game$Game$Entity$map = F2(
 	function (fun, i) {
 		return {
@@ -6395,14 +6446,6 @@ var $Orasund$elm_card_game$Game$Entity$map = F2(
 			rotation: i.rotation,
 			zIndex: i.zIndex
 		};
-	});
-var $elm$core$Tuple$mapFirst = F2(
-	function (func, _v0) {
-		var x = _v0.a;
-		var y = _v0.b;
-		return _Utils_Tuple2(
-			func(x),
-			y);
 	});
 var $Orasund$elm_card_game$Game$Entity$mapPosition = F2(
 	function (fun, entity) {
@@ -6430,24 +6473,6 @@ var $elm$core$Tuple$mapSecond = F2(
 			x,
 			func(y));
 	});
-var $Orasund$elm_card_game$Game$Entity$mapZIndex = F2(
-	function (fun, entity) {
-		return _Utils_update(
-			entity,
-			{
-				zIndex: fun(entity.zIndex)
-			});
-	});
-var $Orasund$elm_card_game$Game$Area$mapZIndex = function (fun) {
-	return $elm$core$List$indexedMap(
-		F2(
-			function (i, entity) {
-				return A2(
-					$Orasund$elm_card_game$Game$Entity$mapZIndex,
-					A2(fun, i, entity.content),
-					entity);
-			}));
-};
 var $elm$core$Tuple$mapBoth = F3(
 	function (funcA, funcB, _v0) {
 		var x = _v0.a;
@@ -6484,6 +6509,15 @@ var $Orasund$elm_card_game$Game$Entity$new = function (a) {
 		zIndex: 1
 	};
 };
+var $Orasund$elm_layout$Layout$none = $elm$html$Html$text('');
+var $Orasund$elm_card_game$Game$Entity$mapZIndex = F2(
+	function (fun, entity) {
+		return _Utils_update(
+			entity,
+			{
+				zIndex: fun(entity.zIndex)
+			});
+	});
 var $Orasund$elm_card_game$Game$Area$new = function (offset) {
 	return $elm$core$List$map(
 		function (_v0) {
@@ -6499,10 +6533,6 @@ var $Orasund$elm_card_game$Game$Area$new = function (offset) {
 					$elm$core$Tuple$pair(id),
 					$Orasund$elm_card_game$Game$Entity$new(content)));
 		});
-};
-var $elm$core$List$singleton = function (value) {
-	return _List_fromArray(
-		[value]);
 };
 var $Orasund$elm_card_game$Game$Area$pileAbove = F3(
 	function (_v0, empty, list) {
@@ -6530,8 +6560,19 @@ var $Orasund$elm_card_game$Game$Area$pileAbove = F3(
 					}),
 				list));
 	});
+var $Orasund$elm_layout$Layout$row = function (attrs) {
+	return $elm$html$Html$div(
+		_Utils_ap(
+			_List_fromArray(
+				[
+					A2($elm$html$Html$Attributes$style, 'display', 'flex'),
+					A2($elm$html$Html$Attributes$style, 'flex-direction', 'row'),
+					A2($elm$html$Html$Attributes$style, 'flex-wrap', 'wrap')
+				]),
+			attrs));
+};
 var $Orasund$elm_layout$Layout$spaceBetween = A2($elm$html$Html$Attributes$style, 'justify-content', 'space-between');
-var $author$project$Config$spacing = 16;
+var $author$project$Config$spacing = 8;
 var $Orasund$elm_layout$Layout$spacing = function (n) {
 	return A2(
 		$elm$html$Html$Attributes$style,
@@ -6611,6 +6652,33 @@ var $Orasund$elm_card_game$Game$Area$toHtml = F2(
 					},
 					list)));
 	});
+var $Orasund$elm_layout$Layout$asEl = A2($elm$html$Html$Attributes$style, 'display', 'flex');
+var $elm$html$Html$button = _VirtualDom_node('button');
+var $Orasund$elm_layout$Layout$buttonEl = F3(
+	function (args, attrs, content) {
+		return A2(
+			$elm$html$Html$button,
+			A2(
+				$elm$core$List$cons,
+				$Orasund$elm_layout$Layout$asEl,
+				_Utils_ap(
+					$Orasund$elm_layout$Layout$asButton(args),
+					attrs)),
+			_List_fromArray(
+				[content]));
+	});
+var $author$project$View$viewButton = F2(
+	function (label, onClick) {
+		return A3(
+			$Orasund$elm_layout$Layout$buttonEl,
+			{label: label, onPress: onClick},
+			_List_fromArray(
+				[
+					A2($elm$html$Html$Attributes$style, 'border', '1px solid rgba(0,0,0,0.2)'),
+					A2($elm$html$Html$Attributes$style, 'border-radius', '4px')
+				]),
+			$elm$html$Html$text(label));
+	});
 var $Orasund$elm_card_game$Game$Card$ratio = function (_float) {
 	return A2(
 		$elm$html$Html$Attributes$style,
@@ -6664,20 +6732,6 @@ var $elm$html$Html$Attributes$stringProperty = F2(
 			$elm$json$Json$Encode$string(string));
 	});
 var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
-var $Orasund$elm_card_game$Game$Card$element = F2(
-	function (attrs, content) {
-		return A2(
-			$elm$html$Html$div,
-			_Utils_ap(
-				_List_fromArray(
-					[
-						A2($elm$html$Html$Attributes$style, 'display', 'flex'),
-						A2($elm$html$Html$Attributes$style, 'padding', '8px 8px')
-					]),
-				attrs),
-			_List_fromArray(
-				[content]));
-	});
 var $author$project$Card$emoji = function (card) {
 	switch (card.$) {
 		case 'Wind':
@@ -6764,7 +6818,6 @@ var $Orasund$elm_card_game$Game$Entity$flippable = F2(
 							]));
 				}));
 	});
-var $Orasund$elm_layout$Layout$none = $elm$html$Html$text('');
 var $author$project$View$viewCard = F3(
 	function (attributes, faceUp, c) {
 		return A2(
@@ -6808,6 +6861,7 @@ var $author$project$View$viewCard = F3(
 								attrs,
 								_List_fromArray(
 									[
+										$Orasund$elm_layout$Layout$centerContent,
 										A2(
 										$elm$html$Html$Attributes$style,
 										'height',
@@ -6816,21 +6870,69 @@ var $author$project$View$viewCard = F3(
 							_List_fromArray(
 								[
 									A2(
-									$Orasund$elm_card_game$Game$Card$element,
-									_List_Nil,
-									$elm$html$Html$text(
-										$author$project$Card$name(c))),
+									$Orasund$elm_layout$Layout$el,
 									A2(
-									$Orasund$elm_card_game$Game$Card$element,
-									_List_fromArray(
-										[
-											A2($elm$html$Html$Attributes$style, 'font-size', '40px')
-										]),
+										$elm$core$List$cons,
+										A2($elm$html$Html$Attributes$style, 'font-size', '100px'),
+										function () {
+											if (c.$ === 'Food') {
+												return _List_fromArray(
+													[$Orasund$elm_layout$Layout$alignAtCenter]);
+											} else {
+												return $Orasund$elm_layout$Layout$centered;
+											}
+										}()),
 									$elm$html$Html$text(
 										$author$project$Card$emoji(c)))
 								]));
 					})
 			});
+	});
+var $elm$core$List$sort = function (xs) {
+	return A2($elm$core$List$sortBy, $elm$core$Basics$identity, xs);
+};
+var $author$project$View$viewDeckInfo = F2(
+	function (attrs, cards) {
+		return A2(
+			$Orasund$elm_layout$Layout$el,
+			_Utils_ap(
+				attrs,
+				_List_fromArray(
+					[
+						A2($elm$html$Html$Attributes$style, 'background-color', 'white'),
+						A2(
+						$elm$html$Html$Attributes$style,
+						'width',
+						$elm$core$String$fromFloat($author$project$Config$cardWidth) + 'px'),
+						A2($elm$html$Html$Attributes$style, 'font-size', '0.8em'),
+						A2($elm$html$Html$Attributes$style, 'border', '1px solid rgba(0,0,0,0.2)'),
+						A2($elm$html$Html$Attributes$style, 'border-radius', ' 0 0 16px 16px'),
+						A2($elm$html$Html$Attributes$style, 'text-align', 'center')
+					])),
+			A2(
+				$Orasund$elm_layout$Layout$column,
+				_List_fromArray(
+					[
+						A2($elm$html$Html$Attributes$style, 'padding', '32px 8px 8px 8px'),
+						$Orasund$elm_layout$Layout$spacing(4)
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$Orasund$elm_layout$Layout$el,
+						_List_Nil,
+						$elm$html$Html$text('Remaining:')),
+						$elm$html$Html$text(
+						$elm$core$String$concat(
+							$elm$core$List$sort(
+								A2(
+									$elm$core$List$map,
+									function (_v0) {
+										var card = _v0.b;
+										return $author$project$Card$emoji(card);
+									},
+									cards))))
+					])));
 	});
 var $Orasund$elm_card_game$Game$Card$empty = F2(
 	function (attrs, string) {
@@ -6884,127 +6986,184 @@ var $author$project$View$viewGame = F2(
 		return A2(
 			$Orasund$elm_layout$Layout$column,
 			_List_fromArray(
-				[$Orasund$elm_layout$Layout$spaceBetween]),
+				[$Orasund$elm_layout$Layout$spaceBetween, $Orasund$elm_layout$Layout$fill]),
 			_List_fromArray(
 				[
 					A2(
-					$Orasund$elm_layout$Layout$el,
-					_List_Nil,
-					$elm$html$Html$text('Waiting for Wind')),
-					A2(
-					$Orasund$elm_card_game$Game$Area$toHtml,
+					$Orasund$elm_layout$Layout$heading1,
 					_List_fromArray(
-						[
-							A2(
-							$elm$html$Html$Attributes$style,
-							'height',
-							$elm$core$String$fromFloat($author$project$Config$cardHeight * 2) + 'px')
-						]),
-					$elm$core$List$concat(
-						_List_fromArray(
-							[
-								A2(
-								$Orasund$elm_card_game$Game$Area$mapZIndex,
-								F2(
-									function (_v2, _v3) {
-										return $elm$core$Basics$add(50);
-									}),
-								A2(
-									$Orasund$elm_card_game$Game$Area$mapPosition,
-									F2(
-										function (i, _v1) {
-											return $elm$core$Tuple$mapFirst(
-												$elm$core$Basics$add(((i * ($author$project$Config$spacing * $author$project$Config$cardWidth)) + $author$project$Config$spacing) + $author$project$Config$cardWidth));
-										}),
-									A2(
-										$elm$core$List$map,
-										function (_v0) {
-											var cardId = _v0.a;
-											var card = _v0.b;
-											return A2(
-												$Orasund$elm_card_game$Game$Entity$map,
-												$elm$core$Tuple$pair(
-													$elm$core$String$fromInt(cardId)),
-												A3(
-													$author$project$View$viewCard,
-													$Orasund$elm_layout$Layout$asButton(
-														{
-															label: 'Select ' + $author$project$Card$name(card),
-															onPress: $elm$core$Maybe$Just(
-																args.selectCard(cardId))
-														}),
-													true,
-													card));
-										},
-										A2($author$project$Game$getCardsFrom, game, game.flying)))),
-								A2(
-								$elm$core$Maybe$withDefault,
-								_List_Nil,
-								A2(
-									$elm$core$Maybe$map,
-									$elm$core$List$singleton,
-									A2(
-										$elm$core$Maybe$map,
-										function (_v4) {
-											var cardId = _v4.a;
-											var card = _v4.b;
-											return A2(
-												$Orasund$elm_card_game$Game$Entity$move,
-												_Utils_Tuple2($author$project$Config$spacing + $author$project$Config$cardWidth, $author$project$Config$cardHeight),
-												A2(
-													$Orasund$elm_card_game$Game$Entity$map,
-													$elm$core$Tuple$pair(
-														$elm$core$String$fromInt(cardId)),
-													A3(
-														$author$project$View$viewCard,
-														$Orasund$elm_layout$Layout$asButton(
-															{
-																label: 'Select ' + $author$project$Card$name(card),
-																onPress: $elm$core$Maybe$Just(
-																	args.selectCard(cardId))
-															}),
-														true,
-														card)));
-										},
-										A2(
-											$elm$core$Maybe$andThen,
-											function (cardId) {
-												return A2(
-													$elm$core$Maybe$map,
-													$elm$core$Tuple$pair(cardId),
-													A2($elm$core$Dict$get, cardId, game.cards));
-											},
-											game.ground)))),
-								A3(
-								$Orasund$elm_card_game$Game$Area$pileAbove,
-								_Utils_Tuple2(0, $author$project$Config$cardHeight),
-								$author$project$View$viewEmptyCard('Deck'),
-								A2(
-									$Orasund$elm_card_game$Game$Area$mapPosition,
-									F2(
-										function (i, _v6) {
-											return $elm$core$Tuple$mapSecond(
-												$elm$core$Basics$add(i * (-2)));
-										}),
-									A2(
-										$elm$core$List$map,
-										function (_v5) {
-											var cardId = _v5.a;
-											var card = _v5.b;
-											return A2(
-												$Orasund$elm_card_game$Game$Entity$map,
-												$elm$core$Tuple$pair(
-													$elm$core$String$fromInt(cardId)),
-												A3($author$project$View$viewCard, _List_Nil, false, card));
-										},
-										$elm$core$List$reverse(
-											A2($author$project$Game$getCardsFrom, game, game.deck)))))
-							]))),
+						[$Orasund$elm_layout$Layout$centerContent]),
+					$elm$html$Html$text('Waiting for Wind')),
 					A2(
 					$Orasund$elm_layout$Layout$column,
 					_List_fromArray(
 						[
-							$Orasund$elm_layout$Layout$spacing(8)
+							$Orasund$elm_layout$Layout$spacing($author$project$Config$spacing)
+						]),
+					_List_fromArray(
+						[
+							A2(
+							$Orasund$elm_layout$Layout$row,
+							_List_fromArray(
+								[
+									$Orasund$elm_layout$Layout$centerContent,
+									$Orasund$elm_layout$Layout$spacing($author$project$Config$spacing)
+								]),
+							_List_fromArray(
+								[
+									A2(
+									$Orasund$elm_card_game$Game$Area$toHtml,
+									_List_fromArray(
+										[
+											A2(
+											$elm$html$Html$Attributes$style,
+											'height',
+											$elm$core$String$fromFloat($author$project$Config$cardHeight) + 'px'),
+											A2(
+											$elm$html$Html$Attributes$style,
+											'width',
+											$elm$core$String$fromFloat(($author$project$Config$cardWidth * 2) + $author$project$Config$spacing) + 'px')
+										]),
+									$elm$core$List$concat(
+										_List_fromArray(
+											[
+												A2(
+												$elm$core$Maybe$withDefault,
+												_List_Nil,
+												A2(
+													$elm$core$Maybe$map,
+													$elm$core$List$singleton,
+													A2(
+														$elm$core$Maybe$map,
+														function (_v0) {
+															var cardId = _v0.a;
+															var card = _v0.b;
+															return A2(
+																$Orasund$elm_card_game$Game$Entity$move,
+																_Utils_Tuple2($author$project$Config$spacing + $author$project$Config$cardWidth, 0),
+																A2(
+																	$Orasund$elm_card_game$Game$Entity$map,
+																	$elm$core$Tuple$pair(
+																		$elm$core$String$fromInt(cardId)),
+																	A3(
+																		$author$project$View$viewCard,
+																		$Orasund$elm_layout$Layout$asButton(
+																			{
+																				label: 'Select ' + $author$project$Card$name(card),
+																				onPress: $elm$core$Maybe$Just(
+																					args.selectCard(cardId))
+																			}),
+																		true,
+																		card)));
+														},
+														A2(
+															$elm$core$Maybe$andThen,
+															function (cardId) {
+																return A2(
+																	$elm$core$Maybe$map,
+																	$elm$core$Tuple$pair(cardId),
+																	A2($elm$core$Dict$get, cardId, game.cards));
+															},
+															game.ground)))),
+												A3(
+												$Orasund$elm_card_game$Game$Area$pileAbove,
+												_Utils_Tuple2(0, 0),
+												$author$project$View$viewEmptyCard('Deck'),
+												A2(
+													$Orasund$elm_card_game$Game$Area$mapPosition,
+													F2(
+														function (i, _v2) {
+															return $elm$core$Tuple$mapSecond(
+																$elm$core$Basics$add(i * (-2)));
+														}),
+													A2(
+														$elm$core$List$map,
+														function (_v1) {
+															var cardId = _v1.a;
+															var card = _v1.b;
+															return A2(
+																$Orasund$elm_card_game$Game$Entity$map,
+																$elm$core$Tuple$pair(
+																	$elm$core$String$fromInt(cardId)),
+																A3($author$project$View$viewCard, _List_Nil, false, card));
+														},
+														$elm$core$List$reverse(
+															A2($author$project$Game$getCardsFrom, game, game.deck))))),
+												_List_fromArray(
+												[
+													A2(
+													$Orasund$elm_card_game$Game$Entity$move,
+													_Utils_Tuple2(-1, ($author$project$Config$cardHeight - 32) + 4),
+													$Orasund$elm_card_game$Game$Entity$new(
+														A2(
+															$elm$core$Tuple$pair,
+															'DeckInfo',
+															function (attrs) {
+																return A2(
+																	$author$project$View$viewDeckInfo,
+																	attrs,
+																	A2($author$project$Game$getCardsFrom, game, game.deck));
+															})))
+												])
+											]))),
+									A2(
+									$Orasund$elm_layout$Layout$el,
+									_List_fromArray(
+										[
+											A2(
+											$elm$html$Html$Attributes$style,
+											'width',
+											$elm$core$String$fromFloat($author$project$Config$cardWidth) + 'px')
+										]),
+									A2(
+										$elm$core$Maybe$withDefault,
+										$Orasund$elm_layout$Layout$none,
+										A2(
+											$elm$core$Maybe$map,
+											function (_v3) {
+												var cardId = _v3.a;
+												var card = _v3.b;
+												return A2(
+													$Orasund$elm_layout$Layout$column,
+													_List_Nil,
+													_List_fromArray(
+														[
+															A2(
+															$Orasund$elm_layout$Layout$el,
+															_List_fromArray(
+																[
+																	A2($elm$html$Html$Attributes$style, 'font-weight', 'bold')
+																]),
+															$elm$html$Html$text(
+																$author$project$Card$name(card))),
+															$elm$html$Html$text(
+															$author$project$Card$description(card))
+														]));
+											},
+											A2(
+												$elm$core$Maybe$andThen,
+												function (cardId) {
+													return A2(
+														$elm$core$Maybe$map,
+														$elm$core$Tuple$pair(cardId),
+														A2($elm$core$Dict$get, cardId, game.cards));
+												},
+												game.ground))))
+								])),
+							A2(
+							$Orasund$elm_layout$Layout$el,
+							_List_fromArray(
+								[$Orasund$elm_layout$Layout$contentCentered]),
+							A2(
+								$author$project$View$viewButton,
+								'Redraw for 1 ' + $author$project$Config$foodEmoji,
+								$elm$core$Maybe$Just(args.redraw)))
+						])),
+					A2(
+					$Orasund$elm_layout$Layout$column,
+					_List_fromArray(
+						[
+							$Orasund$elm_layout$Layout$spacing($author$project$Config$spacing)
 						]),
 					_List_fromArray(
 						[
@@ -7013,13 +7172,13 @@ var $author$project$View$viewGame = F2(
 							_List_Nil,
 							$elm$html$Html$text(
 								'Birds in your flock: ' + $elm$core$String$concat(
-									A2($elm$core$List$repeat, game.flockSize, '🐦')))),
+									A2($elm$core$List$repeat, game.flockSize, $author$project$Config$birdEmoji)))),
 							A2(
 							$Orasund$elm_layout$Layout$el,
 							_List_Nil,
 							$elm$html$Html$text(
 								'Food:' + $elm$core$String$concat(
-									A2($elm$core$List$repeat, game.food, '\uD83E\uDEB1'))))
+									A2($elm$core$List$repeat, game.food, $author$project$Config$foodEmoji))))
 						]))
 				]));
 	});
@@ -7099,7 +7258,7 @@ var $author$project$Main$view = function (model) {
 							]),
 						A2(
 							$author$project$View$viewGame,
-							{selectCard: $author$project$Main$SelectCard},
+							{redraw: $author$project$Main$Redraw, selectCard: $author$project$Main$SelectCard},
 							model.game)))),
 				A3(
 				$elm$html$Html$node,
@@ -7107,7 +7266,7 @@ var $author$project$Main$view = function (model) {
 				_List_Nil,
 				_List_fromArray(
 					[
-						$elm$html$Html$text('\r\n@font-face {\r\n    font-family: "NotoEmoji";\r\n    src: url("assets/NotoEmoji.ttf");\r\n  }\r\n@font-face {\r\n    font-family: "NotoEmojiColor";\r\n    src: url("assets/NotoEmojiColor.ttf");\r\n  }\r\n:root {\r\n    --back-color1: #e5e5f7;\r\n    --back-color2: #444cf7;\r\n}\r\n\r\n:root,body {\r\n    height:100%;background-color:#f4f3ee;\r\n    font-family: serif,"NotoEmojiColor";\r\n}\r\n\r\n.cardBack {\r\n    background-color: var(--back-color1);\r\nbackground-image:  linear-gradient(135deg, var(--back-color2) 25%, transparent 25%), linear-gradient(225deg, var(--back-color2) 25%, transparent 25%), linear-gradient(45deg, var(--back-color2) 25%, transparent 25%), linear-gradient(315deg, var(--back-color2) 25%, var(--back-color1) 25%);\r\nbackground-position:  20px 0, 20px 0, 0 0, 0 0;\r\nbackground-size: 20px 20px;\r\nbackground-repeat: repeat;\r\n}\r\n')
+						$elm$html$Html$text('\r\n@font-face {\r\n    font-family: "NotoEmoji";\r\n    src: url("assets/NotoEmoji.ttf");\r\n  }\r\n@font-face {\r\n    font-family: "NotoEmojiColor";\r\n    src: url("assets/NotoEmojiColor.ttf");\r\n  }\r\n:root {\r\n    --back-color1: #e5e5f7;\r\n    --back-color2: #444cf7;\r\n}\r\n\r\n:root,body {\r\n    height:100%;\r\n    background-color:#f4f3ee;\r\n    font-family: serif,"NotoEmojiColor";\r\n}\r\n\r\n.cardBack {\r\n    background-color: var(--back-color1);\r\nbackground-image:  linear-gradient(135deg, var(--back-color2) 25%, transparent 25%), linear-gradient(225deg, var(--back-color2) 25%, transparent 25%), linear-gradient(45deg, var(--back-color2) 25%, transparent 25%), linear-gradient(315deg, var(--back-color2) 25%, var(--back-color1) 25%);\r\nbackground-position:  40px 0, 40px 0, 0 0, 0 0;\r\nbackground-size: 40px 40px;\r\nbackground-repeat: repeat;\r\n}\r\n\r\nbutton {\r\n    font-family: serif,"NotoEmojiColor";\r\n}\r\n\r\nbutton:hover {\r\n    filter: brightness(0.95)\r\n}\r\n\r\nbutton:focus {\r\n    filter: brightness(0.90)\r\n}\r\n\r\nbutton:active {\r\n    filter: brightness(0.7)\r\n}\r\n')
 					]))
 			]),
 		title: 'Waiting 4 Wind'

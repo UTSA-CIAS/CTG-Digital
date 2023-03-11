@@ -35,3 +35,16 @@ name card =
 
         Predator ->
             "Predator"
+
+
+description : Card -> String
+description card =
+    case card of
+        Wind ->
+            "Remove 1 Food, then shuffle all discarded Cards into the deck."
+
+        Food ->
+            "Add 1 Food"
+
+        Predator ->
+            "Remove 1 Bird"

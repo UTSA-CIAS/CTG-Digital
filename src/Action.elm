@@ -4,22 +4,28 @@ import Card exposing (Card(..), CardId)
 
 
 type Action
-    = AddFood Int
-    | LooseBird
+    = AddFoodAndThen Int Action
+    | LooseBirdAndThen Action
     | DrawCard
     | Shuffle
     | EmptyDeck
     | NewDeck
+    | DiscardCard
 
 
 fromCard : Card -> List Action
 fromCard card =
     case card of
         Food ->
-            [ AddFood 1 ]
+            [ AddFoodAndThen 1 DrawCard ]
 
         Wind ->
-            [ AddFood -1, EmptyDeck, NewDeck, Shuffle ]
+            [ AddFoodAndThen -1 EmptyDeck, NewDeck, Shuffle, DrawCard ]
 
         Predator ->
-            [ LooseBird ]
+            [ LooseBirdAndThen DrawCard ]
+
+
+redraw : List Action
+redraw =
+    [ AddFoodAndThen -1 DiscardCard, DrawCard ]

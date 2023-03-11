@@ -33,6 +33,7 @@ type alias Model =
 type Msg
     = GotSeed Seed
     | SelectCard CardId
+    | Redraw
     | ActionRequested
 
 
@@ -53,7 +54,7 @@ view : Model -> Document Msg
 view model =
     { title = "Waiting 4 Wind"
     , body =
-        [ View.viewGame { selectCard = SelectCard } model.game
+        [ View.viewGame { selectCard = SelectCard, redraw = Redraw } model.game
             |> Layout.el [ Html.Attributes.style "width" "400px", Html.Attributes.style "height" "400px", Html.Attributes.style "border" "1px solid rgba(0,0,0,0.2)" ]
             |> Layout.withStack []
                 (if Game.gameOver model.game then
@@ -93,16 +94,33 @@ view model =
 }
 
 :root,body {
-    height:100%;background-color:#f4f3ee;
+    height:100%;
+    background-color:#f4f3ee;
     font-family: serif,"NotoEmojiColor";
 }
 
 .cardBack {
     background-color: var(--back-color1);
 background-image:  linear-gradient(135deg, var(--back-color2) 25%, transparent 25%), linear-gradient(225deg, var(--back-color2) 25%, transparent 25%), linear-gradient(45deg, var(--back-color2) 25%, transparent 25%), linear-gradient(315deg, var(--back-color2) 25%, var(--back-color1) 25%);
-background-position:  20px 0, 20px 0, 0 0, 0 0;
-background-size: 20px 20px;
+background-position:  40px 0, 40px 0, 0 0, 0 0;
+background-size: 40px 40px;
 background-repeat: repeat;
+}
+
+button {
+    font-family: serif,"NotoEmojiColor";
+}
+
+button:hover {
+    filter: brightness(0.95)
+}
+
+button:focus {
+    filter: brightness(0.90)
+}
+
+button:active {
+    filter: brightness(0.7)
 }
 """
                 |> Html.text
@@ -141,6 +159,9 @@ update msg model =
                     model
             , Cmd.none
             )
+
+        Redraw ->
+            ( { model | actions = Action.redraw ++ model.actions }, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
