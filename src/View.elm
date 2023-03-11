@@ -31,6 +31,9 @@ viewCard attributes args =
                                     Card.Food ->
                                         [ Layout.alignAtCenter ]
 
+                                    Card.Friend ->
+                                        [ Layout.alignAtCenter ]
+
                                     _ ->
                                         Layout.centered
                                )
@@ -155,9 +158,11 @@ viewDeckInfo attrs label cards =
             )
 
 
-viewGame : { selectCard : CardId -> msg, redraw : msg } -> Game -> Html msg
+viewGame : { selectCard : CardId -> msg, redraw : msg, restart : msg } -> Game -> Html msg
 viewGame args game =
-    [ Html.text "Waiting for Wind" |> Layout.heading1 [ Layout.centerContent ]
+    [ [ Html.text "Waiting for Wind" |> Layout.heading1 [ Layout.contentCentered ]
+      ]
+        |> Layout.column []
     , [ [ [ game.ground
                 |> Maybe.andThen (\cardId -> Dict.get cardId game.cards |> Maybe.map (Tuple.pair cardId))
                 |> Maybe.map
@@ -191,7 +196,7 @@ viewGame args game =
                 game.deck
                     |> Game.getCardsFrom game
                     |> List.map Tuple.second
-                    |> viewDeckInfo attrs "Remaining:"
+                    |> viewDeckInfo attrs "contains:"
               )
                 |> Tuple.pair "DeckInfo"
                 |> Game.Entity.new
@@ -216,45 +221,63 @@ viewGame args game =
             |> Layout.el [ Html.Attributes.style "width" (String.fromFloat Config.cardWidth ++ "px") ]
         ]
             |> Layout.row [ Layout.centerContent, Layout.spacing Config.spacing ]
-      , viewButton game.deckType
-            ("Redraw for 1 " ++ Config.foodEmoji)
-            (if game.food > 0 then
-                Just args.redraw
+      , [ Html.text "Click the card" |> Layout.el [ Layout.contentCentered ]
+        , Html.text "or" |> Layout.el [ Layout.contentCentered ]
+        , [ "Redraw" |> Html.text |> Layout.el []
+          , "for 1" ++ Config.foodEmoji |> Html.text |> Layout.el []
+          ]
+            |> Layout.column []
+            |> viewButton
+                ("Redraw for 1 " ++ Config.foodEmoji)
+                (if game.food > 0 then
+                    Just args.redraw
 
-             else
-                Nothing
-            )
+                 else
+                    Nothing
+                )
+            |> Layout.el [ Layout.contentCentered ]
+        ]
+            |> Layout.column [ Html.Attributes.style "width" (String.fromFloat Config.cardWidth ++ "px") ]
             |> Layout.el [ Layout.contentCentered ]
       ]
         |> Layout.column [ Layout.spacing Config.spacing ]
-    , viewStats game
+    , [ viewStats game
+      , Html.text "Restart"
+            |> viewButton "Restart" (Just args.restart)
+            |> Layout.el [ Layout.contentCentered, Layout.alignAtEnd ]
+      ]
+        |> Layout.row [ Layout.spaceBetween ]
     ]
         |> Layout.column [ Layout.spaceBetween, Layout.fill ]
 
 
 viewStats : Game -> Html msg
 viewStats game =
-    [ "Birds: " ++ (List.repeat game.flockSize Config.birdEmoji |> String.concat) |> Html.text |> Layout.el []
-    , "Food: " ++ (List.repeat game.food Config.foodEmoji |> String.concat) |> Html.text |> Layout.el []
-    , "Distance Traveled: "
-        ++ (if game.remainingRests == Config.totalDistance then
-                "0"
-
-            else
-                String.fromInt (Config.totalDistance - game.remainingRests) ++ "0.000"
-           )
-        ++ " km / "
-        ++ String.fromInt Config.totalDistance
-        ++ "0.000 km"
+    [ "Food: " ++ (List.repeat game.food Config.foodEmoji |> String.concat) |> Html.text |> Layout.el []
+    , viewDistanceTraveled game
         |> Html.text
         |> Layout.el []
     ]
         |> Layout.column [ Layout.spacing Config.spacing ]
 
 
-viewButton : Deck -> String -> Maybe msg -> Html msg
-viewButton deck label onClick =
-    Html.text label
+viewDistanceTraveled : Game -> String
+viewDistanceTraveled game =
+    "Distance Traveled: "
+        ++ (if game.remainingRests == Config.totalDistance then
+                "0"
+
+            else
+                String.fromInt (Config.totalDistance - game.remainingRests) ++ ".000"
+           )
+        ++ " km / "
+        ++ String.fromInt Config.totalDistance
+        ++ ".000 km"
+
+
+viewButton : String -> Maybe msg -> Html msg -> Html msg
+viewButton label onClick content =
+    content
         |> Layout.buttonEl { onPress = onClick, label = label }
             [ Html.Attributes.style "border" "1px solid rgba(0,0,0,0.2)"
             , Html.Attributes.style "border-radius" "4px"

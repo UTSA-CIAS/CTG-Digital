@@ -35,7 +35,7 @@ init =
     , deck = []
     , deckType = Deck.Beach
     , ground = Nothing
-    , food = 1
+    , food = 3
     , flockSize = 3
     , remainingRests = Config.totalDistance
     }
@@ -43,7 +43,7 @@ init =
 
 gameOver : Game -> Bool
 gameOver game =
-    game.food < 0 || game.flockSize == 0
+    game.food < 0 || game.flockSize <= 0
 
 
 gameWon : Game -> Bool
@@ -95,18 +95,22 @@ applyAction action game =
                 |> shuffle
                 |> Random.map (\deck -> ( { game | deck = deck }, [] ))
 
-        RemoveDeck ->
+        RemoveDeckAndThen action2 ->
+            { game
+                | deck = []
+                , ground = Nothing
+                , remainingRests = game.remainingRests - 1
+                , cards = Dict.empty
+            }
+                |> applyAction action2
+
+        ChooseNewDeck ->
             Deck.asList
                 |> (\( head, tail ) -> Random.uniform head tail)
                 |> Random.list 2
                 |> Random.map
                     (\list ->
-                        ( { game
-                            | deck = []
-                            , ground = Nothing
-                            , remainingRests = game.remainingRests - 1
-                            , cards = Dict.empty
-                          }
+                        ( game
                         , [ Event.ChooseDeck list ]
                         )
                     )

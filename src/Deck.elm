@@ -84,8 +84,8 @@ cards deck =
 
         Valley ->
             [ List.repeat 1 Card.Wind
-            , List.repeat 5 Card.Food
-            , List.repeat 3 Card.Predator
+            , List.repeat 4 Card.Food
+            , List.repeat 4 Card.Predator
             , List.repeat 1 Card.Eagle
             ]
                 |> List.concat

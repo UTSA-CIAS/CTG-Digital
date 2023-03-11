@@ -12,7 +12,8 @@ type Action
     | FilterDeck (Card -> Bool)
     | DrawCard
     | Shuffle
-    | RemoveDeck
+    | RemoveDeckAndThen Action
+    | ChooseNewDeck
     | NewDeck Deck
     | DiscardCard
 
@@ -24,7 +25,7 @@ fromCard card =
             [ AddFoodAndThen 1 DrawCard ]
 
         Wind ->
-            [ RemoveDeck ]
+            [ RemoveDeckAndThen ChooseNewDeck ]
 
         Predator ->
             [ LooseBirdAndThen DrawCard ]
