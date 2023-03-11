@@ -41,7 +41,7 @@ description : Card -> String
 description card =
     case card of
         Wind ->
-            "Remove 1 Food, then shuffle all discarded Cards into the deck."
+            "Remove 1 Food, then travel to the next location."
 
         Food ->
             "Add 1 Food"

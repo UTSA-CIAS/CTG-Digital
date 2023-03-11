@@ -2,6 +2,8 @@ module Game exposing (..)
 
 import Action exposing (Action(..))
 import Card exposing (Card, CardId)
+import Config
+import Deck exposing (Deck)
 import Dict exposing (Dict)
 import Random exposing (Generator)
 
@@ -9,36 +11,43 @@ import Random exposing (Generator)
 type alias Game =
     { cards : Dict CardId Card
     , deck : List CardId
+    , deckType : Deck
     , ground : Maybe CardId
     , food : Int
     , flockSize : Int
+    , remainingRests : Int
     }
 
 
-initialCards : Dict CardId Card
-initialCards =
+initialDeck : List Card
+initialDeck =
     [ List.repeat 2 Card.Wind
     , List.repeat 4 Card.Food
     , List.repeat 4 Card.Predator
     ]
         |> List.concat
-        |> List.indexedMap Tuple.pair
-        |> Dict.fromList
 
 
 init : Game
 init =
-    { cards = initialCards
-    , deck = List.range 0 (Dict.size initialCards - 1)
+    { cards = Dict.empty
+    , deck = []
+    , deckType = Deck.Beach
     , ground = Nothing
     , food = 10
     , flockSize = 10
+    , remainingRests = Config.totalDistance
     }
 
 
 gameOver : Game -> Bool
 gameOver game =
     game.food < 0 || game.flockSize == 0
+
+
+gameWon : Game -> Bool
+gameWon game =
+    game.remainingRests <= 0
 
 
 shuffle : List a -> Generator (List a)
@@ -82,11 +91,25 @@ applyAction action game =
                 |> shuffle
                 |> Random.map (\deck -> { game | deck = deck })
 
-        EmptyDeck ->
-            Random.constant { game | deck = [] }
+        RemoveDeck ->
+            Random.constant
+                { game
+                    | deck = []
+                    , ground = Nothing
+                    , remainingRests = game.remainingRests - 1
+                    , cards = Dict.empty
+                }
 
-        NewDeck ->
-            Random.constant { game | deck = List.range 0 (Dict.size initialCards - 1) }
+        NewDeck deck ->
+            Random.constant
+                { game
+                    | deck = List.range 0 (List.length (Deck.cards deck) - 1)
+                    , deckType = deck
+                    , cards =
+                        Deck.cards deck
+                            |> List.indexedMap Tuple.pair
+                            |> Dict.fromList
+                }
 
         DiscardCard ->
             { game

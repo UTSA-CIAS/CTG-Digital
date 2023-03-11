@@ -1,6 +1,7 @@
 module Action exposing (..)
 
 import Card exposing (Card(..), CardId)
+import Deck exposing (Deck)
 
 
 type Action
@@ -8,8 +9,8 @@ type Action
     | LooseBirdAndThen Action
     | DrawCard
     | Shuffle
-    | EmptyDeck
-    | NewDeck
+    | RemoveDeck
+    | NewDeck Deck
     | DiscardCard
 
 
@@ -20,10 +21,15 @@ fromCard card =
             [ AddFoodAndThen 1 DrawCard ]
 
         Wind ->
-            [ AddFoodAndThen -1 EmptyDeck, NewDeck, Shuffle, DrawCard ]
+            [ AddFoodAndThen -1 RemoveDeck ]
 
         Predator ->
             [ LooseBirdAndThen DrawCard ]
+
+
+chooseDeck : Deck -> List Action
+chooseDeck deck =
+    [ NewDeck deck, Shuffle, DrawCard ]
 
 
 redraw : List Action

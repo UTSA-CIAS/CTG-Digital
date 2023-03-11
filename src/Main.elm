@@ -3,8 +3,12 @@ port module Main exposing (..)
 import Action exposing (Action)
 import Browser exposing (Document)
 import Card exposing (CardId)
+import Config
+import Deck exposing (Deck)
+import Dict
 import Game exposing (Game)
 import Game.Area
+import Game.Entity
 import Html
 import Html.Attributes
 import Layout
@@ -35,6 +39,7 @@ type Msg
     | SelectCard CardId
     | Redraw
     | ActionRequested
+    | SelectDeck Deck
 
 
 init : () -> ( Model, Cmd Msg )
@@ -57,26 +62,65 @@ view model =
         [ View.viewGame { selectCard = SelectCard, redraw = Redraw } model.game
             |> Layout.el [ Html.Attributes.style "width" "400px", Html.Attributes.style "height" "400px", Html.Attributes.style "border" "1px solid rgba(0,0,0,0.2)" ]
             |> Layout.withStack []
-                (if Game.gameOver model.game then
-                    [ ( []
-                      , Html.text "You Dead"
-                            |> Layout.el []
-                            |> Layout.el
-                                (Layout.centered
-                                    ++ [ Html.Attributes.style "width" "400px"
-                                       , Html.Attributes.style "height" "400px"
-                                       , Html.Attributes.style "backdrop-filter" "blur(4px)"
-                                       , Html.Attributes.style "z-index" "100"
-                                       , Html.Attributes.style "position" "relative"
-                                       ]
-                                )
-                      )
-                    ]
+                ((if Game.gameWon model.game then
+                    ( [ Html.Attributes.style "background-color" "rgba(158,228,147,0.5)" ]
+                    , Html.text "You have reached Afrika. Your Journey is over"
+                        |> Layout.el []
+                    )
+                        |> Just
 
-                 else
-                    []
+                  else if Game.gameOver model.game then
+                    ( [ Html.Attributes.style "background-color" "rgba(100,64,62,0.5)" ]
+                    , Html.text "You Journey has ended as you reach Deaths doorstep"
+                        |> Layout.el []
+                    )
+                        |> Just
+
+                  else if Dict.isEmpty model.game.cards then
+                    ( [ Html.Attributes.style "background-color" "rgba(50,203,255,0.5)" ]
+                    , [ Html.text "Where should your flock land?"
+                            |> Layout.heading2 [ Html.Attributes.style "padding" (String.fromFloat (Config.spacing + 2) ++ "px 0") ]
+                      , Deck.asList
+                            |> List.map
+                                (\deck ->
+                                    View.viewCardBack
+                                        (Layout.asButton
+                                            { onPress = Just (SelectDeck deck), label = "Select " ++ Deck.name deck ++ "Deck" }
+                                        )
+                                        deck
+                                        |> View.viewDeck (Deck.cards deck)
+                                        |> Game.Entity.toHtml []
+                                )
+                            |> Layout.row [ Layout.spacing Config.spacing ]
+                      , View.viewStats model.game
+                      ]
+                        |> Layout.column [ Layout.spaceBetween, Html.Attributes.style "height" "100%" ]
+                    )
+                        |> Just
+
+                  else
+                    Nothing
+                 )
+                    |> Maybe.map
+                        (\( attrs, content ) ->
+                            [ ( []
+                              , content
+                                    |> Layout.el
+                                        (Layout.centered
+                                            ++ [ Html.Attributes.style "width" "400px"
+                                               , Html.Attributes.style "height" "400px"
+                                               , Html.Attributes.style "backdrop-filter" "blur(4px)"
+                                               , Html.Attributes.style "z-index" "100"
+                                               , Html.Attributes.style "position" "relative"
+                                               ]
+                                            ++ attrs
+                                        )
+                              )
+                            ]
+                        )
+                    |> Maybe.withDefault []
                 )
-            |> Layout.el ([ Html.Attributes.style "height" "100%" ] ++ Layout.centered)
+            |> Layout.el (Html.Attributes.style "height" "100%" :: Layout.centered)
         , Html.node "style"
             []
             [ """
@@ -97,14 +141,6 @@ view model =
     height:100%;
     background-color:#f4f3ee;
     font-family: serif,"NotoEmojiColor";
-}
-
-.cardBack {
-    background-color: var(--back-color1);
-background-image:  linear-gradient(135deg, var(--back-color2) 25%, transparent 25%), linear-gradient(225deg, var(--back-color2) 25%, transparent 25%), linear-gradient(45deg, var(--back-color2) 25%, transparent 25%), linear-gradient(315deg, var(--back-color2) 25%, var(--back-color1) 25%);
-background-position:  40px 0, 40px 0, 0 0, 0 0;
-background-size: 40px 40px;
-background-repeat: repeat;
 }
 
 button {
@@ -137,6 +173,16 @@ updateGame fun model =
            )
 
 
+requestAction : Model -> Model
+requestAction model =
+    case model.actions of
+        head :: tail ->
+            { model | actions = tail } |> updateGame (Game.applyAction head)
+
+        [] ->
+            model
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -151,17 +197,15 @@ update msg model =
             )
 
         ActionRequested ->
-            ( case model.actions of
-                head :: tail ->
-                    { model | actions = tail } |> updateGame (Game.applyAction head)
-
-                [] ->
-                    model
+            ( requestAction model
             , Cmd.none
             )
 
         Redraw ->
             ( { model | actions = Action.redraw ++ model.actions }, Cmd.none )
+
+        SelectDeck deck ->
+            ( { model | actions = Action.chooseDeck deck ++ model.actions } |> requestAction, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg

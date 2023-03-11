@@ -24,3 +24,8 @@ birdEmoji =
 foodEmoji : String
 foodEmoji =
     "\u{1FAB1}"
+
+
+totalDistance : Int
+totalDistance =
+    10
