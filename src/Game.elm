@@ -35,7 +35,7 @@ init =
     , deck = []
     , deckType = Deck.Beach
     , ground = Nothing
-    , food = 3
+    , food = 1
     , flockSize = 3
     , remainingRests = Config.totalDistance
     }
@@ -82,6 +82,9 @@ applyAction action game =
 
         DrawCard ->
             ( drawCard game, [] ) |> Random.constant
+
+        AddBirdAndThen action2 ->
+            { game | flockSize = game.flockSize + 1 } |> applyAction action2
 
         LooseBirdAndThen action2 ->
             { game | flockSize = game.flockSize - 1 }
@@ -144,6 +147,22 @@ applyAction action game =
 
                 [] ->
                     Random.constant ( game, [] )
+
+        FilterDeck fun ->
+            ( { game
+                | deck =
+                    game.deck
+                        |> List.filter
+                            (\cardId ->
+                                game.cards
+                                    |> Dict.get cardId
+                                    |> Maybe.map fun
+                                    |> Maybe.withDefault False
+                            )
+              }
+            , []
+            )
+                |> Random.constant
 
 
 getCardsFrom : Game -> List CardId -> List ( CardId, Card )

@@ -3,7 +3,7 @@ module View exposing (..)
 import Card exposing (Card, CardId)
 import Config
 import Deck exposing (Deck, primaryColor, secondaryColor)
-import Dict
+import Dict exposing (Dict)
 import Game exposing (Game)
 import Game.Area
 import Game.Card
@@ -101,11 +101,26 @@ viewDeck cards back =
             )
         |> Game.Entity.pileAbove
             (Layout.el
-                [ Html.Attributes.style "height" (String.fromFloat (Config.cardHeight + 70) ++ "px")
+                [ Html.Attributes.style "height" (String.fromFloat (Config.cardHeight + 100) ++ "px")
                 , Html.Attributes.style "width" (String.fromFloat Config.cardWidth ++ "px")
                 ]
                 Layout.none
             )
+
+
+group : List String -> Dict String Int
+group =
+    List.foldl
+        (\key ->
+            Dict.update key
+                (\maybe ->
+                    maybe
+                        |> Maybe.map ((+) 1)
+                        |> Maybe.withDefault 1
+                        |> Just
+                )
+        )
+        Dict.empty
 
 
 viewDeckInfo : List (Attribute msg) -> String -> List Card -> Html msg
@@ -113,10 +128,17 @@ viewDeckInfo attrs label cards =
     [ Html.text label |> Layout.el []
     , cards
         |> List.map Card.emoji
-        |> List.sort
-        |> String.concat
-        |> Html.text
-        |> Layout.el [ Html.Attributes.style "font-size" "0.8em" ]
+        |> group
+        |> Dict.toList
+        |> List.sortBy Tuple.second
+        |> List.map
+            (\( string, amount ) ->
+                List.repeat amount string
+                    |> String.concat
+                    |> Html.text
+                    |> Layout.el []
+            )
+        |> Layout.column [ Html.Attributes.style "font-size" "0.8em" ]
     ]
         |> Layout.column [ Html.Attributes.style "padding" "32px 8px 8px 8px", Layout.spacing 4 ]
         |> Layout.el

@@ -7,7 +7,9 @@ import Deck exposing (Deck)
 type Action
     = AddFoodAndThen Int Action
     | IfEnoughFoodAndThen Int (List Action) (List Action)
+    | AddBirdAndThen Action
     | LooseBirdAndThen Action
+    | FilterDeck (Card -> Bool)
     | DrawCard
     | Shuffle
     | RemoveDeck
@@ -26,6 +28,18 @@ fromCard card =
 
         Predator ->
             [ LooseBirdAndThen DrawCard ]
+
+        BigPredator ->
+            [ LooseBirdAndThen (LooseBirdAndThen DrawCard) ]
+
+        Friend ->
+            [ AddBirdAndThen DrawCard ]
+
+        LowTide ->
+            [ AddFoodAndThen 2 DrawCard ]
+
+        Eagle ->
+            [ FilterDeck ((/=) Food), DrawCard ]
 
 
 chooseDeck : Deck -> List Action

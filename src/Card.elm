@@ -9,6 +9,10 @@ type Card
     = Wind
     | Food
     | Predator
+    | BigPredator
+    | Friend
+    | LowTide
+    | Eagle
 
 
 emoji : Card -> String
@@ -21,7 +25,19 @@ emoji card =
             "\u{1FAB1}"
 
         Predator ->
+            "😾"
+
+        BigPredator ->
             "🦁"
+
+        Friend ->
+            "🐦"
+
+        LowTide ->
+            "🦐"
+
+        Eagle ->
+            "🦅"
 
 
 name : Card -> String
@@ -36,6 +52,18 @@ name card =
         Predator ->
             "Predator"
 
+        BigPredator ->
+            "Big Predator"
+
+        Friend ->
+            "Friend"
+
+        LowTide ->
+            "Low Tide"
+
+        Eagle ->
+            "Competition"
+
 
 description : Card -> String
 description card =
@@ -48,3 +76,15 @@ description card =
 
         Predator ->
             "Remove 1 Bird"
+
+        BigPredator ->
+            "Remove 2 Birds"
+
+        Friend ->
+            "Add 1 Bird"
+
+        LowTide ->
+            "Add 2 Food"
+
+        Eagle ->
+            "Remove all food cards from the deck"

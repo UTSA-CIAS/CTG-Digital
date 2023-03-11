@@ -33,6 +33,7 @@ type alias Model =
     , seed : Seed
     , selectableDecks : List Deck
     , actions : List Action
+    , animationToggle : Bool
     }
 
 
@@ -51,6 +52,7 @@ init () =
       , seed = Random.initialSeed 42
       , selectableDecks = [ Deck.Beach ]
       , actions = []
+      , animationToggle = False
       }
     , Cmd.batch
         [ Random.generate GotSeed Random.independentSeed
@@ -67,15 +69,19 @@ view model =
             |> Layout.withStack ([ Html.Attributes.style "height" "100%", Html.Attributes.style "width" "100%" ] ++ Layout.centered)
                 ((if Game.gameWon model.game then
                     ( [ Html.Attributes.style "background-color" "rgba(158,228,147,0.5)" ]
-                    , Html.text "You have reached Africa. Your Journey is over"
-                        |> Layout.el []
+                    , [ Html.text "🐘" |> Layout.el [ Html.Attributes.style "font-size" "80px", Layout.centerContent ]
+                      , Html.text "You have reached Africa. Your Journey is over" |> Layout.el []
+                      ]
+                        |> Layout.column [ Layout.spacing Config.spacing ]
                     )
                         |> Just
 
                   else if Game.gameOver model.game then
                     ( [ Html.Attributes.style "background-color" "rgba(100,64,62,0.5)" ]
-                    , Html.text "You Journey has ended as you reach Deaths doorstep"
-                        |> Layout.el []
+                    , [ Html.text "💀" |> Layout.el [ Html.Attributes.style "font-size" "80px", Layout.centerContent ]
+                      , Html.text "Your journey ends at Deaths doorstep"
+                      ]
+                        |> Layout.column [ Layout.spacing Config.spacing ]
                     )
                         |> Just
 
@@ -222,7 +228,7 @@ update msg model =
             )
 
         ActionRequested ->
-            ( requestAction model
+            ( requestAction { model | animationToggle = not model.animationToggle }
             , Cmd.none
             )
 

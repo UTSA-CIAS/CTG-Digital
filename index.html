@@ -5448,11 +5448,12 @@ var $elm$random$Random$independentSeed = $elm$random$Random$Generator(
 var $elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
 var $elm$core$Dict$empty = $elm$core$Dict$RBEmpty_elm_builtin;
 var $author$project$Config$totalDistance = 10;
-var $author$project$Game$init = {cards: $elm$core$Dict$empty, deck: _List_Nil, deckType: $author$project$Deck$Beach, flockSize: 3, food: 3, ground: $elm$core$Maybe$Nothing, remainingRests: $author$project$Config$totalDistance};
+var $author$project$Game$init = {cards: $elm$core$Dict$empty, deck: _List_Nil, deckType: $author$project$Deck$Beach, flockSize: 3, food: 1, ground: $elm$core$Maybe$Nothing, remainingRests: $author$project$Config$totalDistance};
 var $author$project$Main$init = function (_v0) {
 	return _Utils_Tuple2(
 		{
 			actions: _List_Nil,
+			animationToggle: false,
 			game: $author$project$Game$init,
 			seed: $elm$random$Random$initialSeed(42),
 			selectableDecks: _List_fromArray(
@@ -5884,14 +5885,22 @@ var $author$project$Action$chooseDeck = function (deck) {
 			$author$project$Action$DrawCard
 		]);
 };
+var $author$project$Action$AddBirdAndThen = function (a) {
+	return {$: 'AddBirdAndThen', a: a};
+};
 var $author$project$Action$AddFoodAndThen = F2(
 	function (a, b) {
 		return {$: 'AddFoodAndThen', a: a, b: b};
 	});
+var $author$project$Action$FilterDeck = function (a) {
+	return {$: 'FilterDeck', a: a};
+};
+var $author$project$Card$Food = {$: 'Food'};
 var $author$project$Action$LooseBirdAndThen = function (a) {
 	return {$: 'LooseBirdAndThen', a: a};
 };
 var $author$project$Action$RemoveDeck = {$: 'RemoveDeck'};
+var $elm$core$Basics$neq = _Utils_notEqual;
 var $author$project$Action$fromCard = function (card) {
 	switch (card.$) {
 		case 'Food':
@@ -5902,10 +5911,33 @@ var $author$project$Action$fromCard = function (card) {
 		case 'Wind':
 			return _List_fromArray(
 				[$author$project$Action$RemoveDeck]);
-		default:
+		case 'Predator':
 			return _List_fromArray(
 				[
 					$author$project$Action$LooseBirdAndThen($author$project$Action$DrawCard)
+				]);
+		case 'BigPredator':
+			return _List_fromArray(
+				[
+					$author$project$Action$LooseBirdAndThen(
+					$author$project$Action$LooseBirdAndThen($author$project$Action$DrawCard))
+				]);
+		case 'Friend':
+			return _List_fromArray(
+				[
+					$author$project$Action$AddBirdAndThen($author$project$Action$DrawCard)
+				]);
+		case 'LowTide':
+			return _List_fromArray(
+				[
+					A2($author$project$Action$AddFoodAndThen, 2, $author$project$Action$DrawCard)
+				]);
+		default:
+			return _List_fromArray(
+				[
+					$author$project$Action$FilterDeck(
+					$elm$core$Basics$neq($author$project$Card$Food)),
+					$author$project$Action$DrawCard
 				]);
 	}
 };
@@ -5920,6 +5952,7 @@ var $elm$core$Maybe$map = F2(
 		}
 	});
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
+var $elm$core$Basics$not = _Basics_not;
 var $author$project$Action$DiscardCard = {$: 'DiscardCard'};
 var $author$project$Action$redraw = _List_fromArray(
 	[
@@ -5933,12 +5966,16 @@ var $author$project$Event$ChooseDeck = function (a) {
 	return {$: 'ChooseDeck', a: a};
 };
 var $author$project$Deck$Desert = {$: 'Desert'};
+var $author$project$Deck$Savanna = {$: 'Savanna'};
 var $author$project$Deck$Valley = {$: 'Valley'};
 var $author$project$Deck$asList = _Utils_Tuple2(
 	$author$project$Deck$Beach,
 	_List_fromArray(
-		[$author$project$Deck$Desert, $author$project$Deck$Valley]));
-var $author$project$Card$Food = {$: 'Food'};
+		[$author$project$Deck$Desert, $author$project$Deck$Valley, $author$project$Deck$Savanna, $author$project$Deck$Savanna]));
+var $author$project$Card$BigPredator = {$: 'BigPredator'};
+var $author$project$Card$Eagle = {$: 'Eagle'};
+var $author$project$Card$Friend = {$: 'Friend'};
+var $author$project$Card$LowTide = {$: 'LowTide'};
 var $author$project$Card$Predator = {$: 'Predator'};
 var $author$project$Card$Wind = {$: 'Wind'};
 var $elm$core$List$append = F2(
@@ -5980,24 +6017,36 @@ var $author$project$Deck$cards = function (deck) {
 				_List_fromArray(
 					[
 						A2($elm$core$List$repeat, 2, $author$project$Card$Wind),
-						A2($elm$core$List$repeat, 6, $author$project$Card$Food),
-						A2($elm$core$List$repeat, 2, $author$project$Card$Predator)
+						A2($elm$core$List$repeat, 1, $author$project$Card$Food),
+						A2($elm$core$List$repeat, 5, $author$project$Card$Predator),
+						A2($elm$core$List$repeat, 2, $author$project$Card$LowTide)
 					]));
 		case 'Desert':
 			return $elm$core$List$concat(
 				_List_fromArray(
 					[
-						A2($elm$core$List$repeat, 4, $author$project$Card$Wind),
-						A2($elm$core$List$repeat, 1, $author$project$Card$Food),
-						A2($elm$core$List$repeat, 5, $author$project$Card$Predator)
+						A2($elm$core$List$repeat, 3, $author$project$Card$Wind),
+						A2($elm$core$List$repeat, 5, $author$project$Card$Predator),
+						A2($elm$core$List$repeat, 1, $author$project$Card$BigPredator),
+						A2($elm$core$List$repeat, 1, $author$project$Card$Friend)
+					]));
+		case 'Valley':
+			return $elm$core$List$concat(
+				_List_fromArray(
+					[
+						A2($elm$core$List$repeat, 1, $author$project$Card$Wind),
+						A2($elm$core$List$repeat, 5, $author$project$Card$Food),
+						A2($elm$core$List$repeat, 3, $author$project$Card$Predator),
+						A2($elm$core$List$repeat, 1, $author$project$Card$Eagle)
 					]));
 		default:
 			return $elm$core$List$concat(
 				_List_fromArray(
 					[
 						A2($elm$core$List$repeat, 1, $author$project$Card$Wind),
-						A2($elm$core$List$repeat, 5, $author$project$Card$Food),
-						A2($elm$core$List$repeat, 4, $author$project$Card$Predator)
+						A2($elm$core$List$repeat, 3, $author$project$Card$Food),
+						A2($elm$core$List$repeat, 5, $author$project$Card$Predator),
+						A2($elm$core$List$repeat, 1, $author$project$Card$Friend)
 					]));
 	}
 };
@@ -6022,6 +6071,17 @@ var $author$project$Game$drawCard = function (game) {
 		return game;
 	}
 };
+var $elm$core$List$filter = F2(
+	function (isGood, list) {
+		return A3(
+			$elm$core$List$foldr,
+			F2(
+				function (x, xs) {
+					return isGood(x) ? A2($elm$core$List$cons, x, xs) : xs;
+				}),
+			_List_Nil,
+			list);
+	});
 var $elm$core$Dict$fromList = function (assocs) {
 	return A3(
 		$elm$core$List$foldl,
@@ -6202,6 +6262,14 @@ var $author$project$Game$applyAction = F2(
 					_Utils_Tuple2(
 						$author$project$Game$drawCard(game),
 						_List_Nil));
+			case 'AddBirdAndThen':
+				var action2 = action.a;
+				return A2(
+					$author$project$Game$applyAction,
+					action2,
+					_Utils_update(
+						game,
+						{flockSize: game.flockSize + 1}));
 			case 'LooseBirdAndThen':
 				var action2 = action.a;
 				return A2(
@@ -6277,7 +6345,7 @@ var $author$project$Game$applyAction = F2(
 								ground: $elm$core$Maybe$Nothing
 							}),
 						_List_Nil));
-			default:
+			case 'IfEnoughFoodAndThen':
 				var amount = action.a;
 				var trueAction = action.b;
 				var falseAction = action.c;
@@ -6301,6 +6369,27 @@ var $author$project$Game$applyAction = F2(
 					return $elm$random$Random$constant(
 						_Utils_Tuple2(game, _List_Nil));
 				}
+			default:
+				var fun = action.a;
+				return $elm$random$Random$constant(
+					_Utils_Tuple2(
+						_Utils_update(
+							game,
+							{
+								deck: A2(
+									$elm$core$List$filter,
+									function (cardId) {
+										return A2(
+											$elm$core$Maybe$withDefault,
+											false,
+											A2(
+												$elm$core$Maybe$map,
+												fun,
+												A2($elm$core$Dict$get, cardId, game.cards)));
+									},
+									game.deck)
+							}),
+						_List_Nil));
 		}
 	});
 var $author$project$Main$applyEvent = F2(
@@ -6390,7 +6479,10 @@ var $author$project$Main$update = F2(
 					$elm$core$Platform$Cmd$none);
 			case 'ActionRequested':
 				return _Utils_Tuple2(
-					$author$project$Main$requestAction(model),
+					$author$project$Main$requestAction(
+						_Utils_update(
+							model,
+							{animationToggle: !model.animationToggle})),
 					$elm$core$Platform$Cmd$none);
 			case 'Redraw':
 				return _Utils_Tuple2(
@@ -6469,6 +6561,7 @@ var $Orasund$elm_layout$Layout$asButton = function (args) {
 				},
 				args.onPress)));
 };
+var $Orasund$elm_layout$Layout$centerContent = A2($elm$html$Html$Attributes$style, 'justify-content', 'center');
 var $Orasund$elm_layout$Layout$alignAtCenter = A2($elm$html$Html$Attributes$style, 'align-items', 'center');
 var $Orasund$elm_layout$Layout$contentCentered = A2($elm$html$Html$Attributes$style, 'justify-content', 'center');
 var $Orasund$elm_layout$Layout$centered = _List_fromArray(
@@ -6527,8 +6620,10 @@ var $author$project$Deck$name = function (deck) {
 			return 'Beach';
 		case 'Desert':
 			return 'Desert';
-		default:
+		case 'Valley':
 			return 'Valley';
+		default:
+			return 'Savanna';
 	}
 };
 var $elm$virtual_dom$VirtualDom$node = function (tag) {
@@ -6647,8 +6742,10 @@ var $author$project$Deck$emoji = function (deck) {
 			return '🌊';
 		case 'Desert':
 			return '🌵';
-		default:
+		case 'Valley':
 			return '⛰️';
+		default:
+			return '🦓';
 	}
 };
 var $Orasund$elm_card_game$Game$Entity$new = function (a) {
@@ -6666,8 +6763,10 @@ var $author$project$Deck$primaryColor = function (deck) {
 			return '#5C6784';
 		case 'Desert':
 			return '#FCBF49';
-		default:
+		case 'Valley':
 			return '#7A9E9F';
+		default:
+			return '#e9afa3';
 	}
 };
 var $author$project$Deck$secondaryColor = function (deck) {
@@ -6676,8 +6775,10 @@ var $author$project$Deck$secondaryColor = function (deck) {
 			return '#98C1D9';
 		case 'Desert':
 			return '#EAE2B7';
-		default:
+		case 'Valley':
 			return '#B8D8D8';
+		default:
+			return '#f9dec9';
 	}
 };
 var $author$project$View$viewCardBack = F2(
@@ -6778,7 +6879,6 @@ var $Orasund$elm_card_game$Game$Entity$pileAbove = F2(
 							stack)));
 			});
 	});
-var $Orasund$elm_layout$Layout$centerContent = A2($elm$html$Html$Attributes$style, 'justify-content', 'center');
 var $elm$core$String$concat = function (strings) {
 	return A2($elm$core$String$join, '', strings);
 };
@@ -6788,13 +6888,409 @@ var $author$project$Card$emoji = function (card) {
 			return '🌬';
 		case 'Food':
 			return '\uD83E\uDEB1';
-		default:
+		case 'Predator':
+			return '😾';
+		case 'BigPredator':
 			return '🦁';
+		case 'Friend':
+			return '🐦';
+		case 'LowTide':
+			return '🦐';
+		default:
+			return '🦅';
 	}
 };
-var $elm$core$List$sort = function (xs) {
-	return A2($elm$core$List$sortBy, $elm$core$Basics$identity, xs);
+var $elm$core$Dict$getMin = function (dict) {
+	getMin:
+	while (true) {
+		if ((dict.$ === 'RBNode_elm_builtin') && (dict.d.$ === 'RBNode_elm_builtin')) {
+			var left = dict.d;
+			var $temp$dict = left;
+			dict = $temp$dict;
+			continue getMin;
+		} else {
+			return dict;
+		}
+	}
 };
+var $elm$core$Dict$moveRedLeft = function (dict) {
+	if (((dict.$ === 'RBNode_elm_builtin') && (dict.d.$ === 'RBNode_elm_builtin')) && (dict.e.$ === 'RBNode_elm_builtin')) {
+		if ((dict.e.d.$ === 'RBNode_elm_builtin') && (dict.e.d.a.$ === 'Red')) {
+			var clr = dict.a;
+			var k = dict.b;
+			var v = dict.c;
+			var _v1 = dict.d;
+			var lClr = _v1.a;
+			var lK = _v1.b;
+			var lV = _v1.c;
+			var lLeft = _v1.d;
+			var lRight = _v1.e;
+			var _v2 = dict.e;
+			var rClr = _v2.a;
+			var rK = _v2.b;
+			var rV = _v2.c;
+			var rLeft = _v2.d;
+			var _v3 = rLeft.a;
+			var rlK = rLeft.b;
+			var rlV = rLeft.c;
+			var rlL = rLeft.d;
+			var rlR = rLeft.e;
+			var rRight = _v2.e;
+			return A5(
+				$elm$core$Dict$RBNode_elm_builtin,
+				$elm$core$Dict$Red,
+				rlK,
+				rlV,
+				A5(
+					$elm$core$Dict$RBNode_elm_builtin,
+					$elm$core$Dict$Black,
+					k,
+					v,
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, lK, lV, lLeft, lRight),
+					rlL),
+				A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, rK, rV, rlR, rRight));
+		} else {
+			var clr = dict.a;
+			var k = dict.b;
+			var v = dict.c;
+			var _v4 = dict.d;
+			var lClr = _v4.a;
+			var lK = _v4.b;
+			var lV = _v4.c;
+			var lLeft = _v4.d;
+			var lRight = _v4.e;
+			var _v5 = dict.e;
+			var rClr = _v5.a;
+			var rK = _v5.b;
+			var rV = _v5.c;
+			var rLeft = _v5.d;
+			var rRight = _v5.e;
+			if (clr.$ === 'Black') {
+				return A5(
+					$elm$core$Dict$RBNode_elm_builtin,
+					$elm$core$Dict$Black,
+					k,
+					v,
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, lK, lV, lLeft, lRight),
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, rK, rV, rLeft, rRight));
+			} else {
+				return A5(
+					$elm$core$Dict$RBNode_elm_builtin,
+					$elm$core$Dict$Black,
+					k,
+					v,
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, lK, lV, lLeft, lRight),
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, rK, rV, rLeft, rRight));
+			}
+		}
+	} else {
+		return dict;
+	}
+};
+var $elm$core$Dict$moveRedRight = function (dict) {
+	if (((dict.$ === 'RBNode_elm_builtin') && (dict.d.$ === 'RBNode_elm_builtin')) && (dict.e.$ === 'RBNode_elm_builtin')) {
+		if ((dict.d.d.$ === 'RBNode_elm_builtin') && (dict.d.d.a.$ === 'Red')) {
+			var clr = dict.a;
+			var k = dict.b;
+			var v = dict.c;
+			var _v1 = dict.d;
+			var lClr = _v1.a;
+			var lK = _v1.b;
+			var lV = _v1.c;
+			var _v2 = _v1.d;
+			var _v3 = _v2.a;
+			var llK = _v2.b;
+			var llV = _v2.c;
+			var llLeft = _v2.d;
+			var llRight = _v2.e;
+			var lRight = _v1.e;
+			var _v4 = dict.e;
+			var rClr = _v4.a;
+			var rK = _v4.b;
+			var rV = _v4.c;
+			var rLeft = _v4.d;
+			var rRight = _v4.e;
+			return A5(
+				$elm$core$Dict$RBNode_elm_builtin,
+				$elm$core$Dict$Red,
+				lK,
+				lV,
+				A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, llK, llV, llLeft, llRight),
+				A5(
+					$elm$core$Dict$RBNode_elm_builtin,
+					$elm$core$Dict$Black,
+					k,
+					v,
+					lRight,
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, rK, rV, rLeft, rRight)));
+		} else {
+			var clr = dict.a;
+			var k = dict.b;
+			var v = dict.c;
+			var _v5 = dict.d;
+			var lClr = _v5.a;
+			var lK = _v5.b;
+			var lV = _v5.c;
+			var lLeft = _v5.d;
+			var lRight = _v5.e;
+			var _v6 = dict.e;
+			var rClr = _v6.a;
+			var rK = _v6.b;
+			var rV = _v6.c;
+			var rLeft = _v6.d;
+			var rRight = _v6.e;
+			if (clr.$ === 'Black') {
+				return A5(
+					$elm$core$Dict$RBNode_elm_builtin,
+					$elm$core$Dict$Black,
+					k,
+					v,
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, lK, lV, lLeft, lRight),
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, rK, rV, rLeft, rRight));
+			} else {
+				return A5(
+					$elm$core$Dict$RBNode_elm_builtin,
+					$elm$core$Dict$Black,
+					k,
+					v,
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, lK, lV, lLeft, lRight),
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, rK, rV, rLeft, rRight));
+			}
+		}
+	} else {
+		return dict;
+	}
+};
+var $elm$core$Dict$removeHelpPrepEQGT = F7(
+	function (targetKey, dict, color, key, value, left, right) {
+		if ((left.$ === 'RBNode_elm_builtin') && (left.a.$ === 'Red')) {
+			var _v1 = left.a;
+			var lK = left.b;
+			var lV = left.c;
+			var lLeft = left.d;
+			var lRight = left.e;
+			return A5(
+				$elm$core$Dict$RBNode_elm_builtin,
+				color,
+				lK,
+				lV,
+				lLeft,
+				A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, key, value, lRight, right));
+		} else {
+			_v2$2:
+			while (true) {
+				if ((right.$ === 'RBNode_elm_builtin') && (right.a.$ === 'Black')) {
+					if (right.d.$ === 'RBNode_elm_builtin') {
+						if (right.d.a.$ === 'Black') {
+							var _v3 = right.a;
+							var _v4 = right.d;
+							var _v5 = _v4.a;
+							return $elm$core$Dict$moveRedRight(dict);
+						} else {
+							break _v2$2;
+						}
+					} else {
+						var _v6 = right.a;
+						var _v7 = right.d;
+						return $elm$core$Dict$moveRedRight(dict);
+					}
+				} else {
+					break _v2$2;
+				}
+			}
+			return dict;
+		}
+	});
+var $elm$core$Dict$removeMin = function (dict) {
+	if ((dict.$ === 'RBNode_elm_builtin') && (dict.d.$ === 'RBNode_elm_builtin')) {
+		var color = dict.a;
+		var key = dict.b;
+		var value = dict.c;
+		var left = dict.d;
+		var lColor = left.a;
+		var lLeft = left.d;
+		var right = dict.e;
+		if (lColor.$ === 'Black') {
+			if ((lLeft.$ === 'RBNode_elm_builtin') && (lLeft.a.$ === 'Red')) {
+				var _v3 = lLeft.a;
+				return A5(
+					$elm$core$Dict$RBNode_elm_builtin,
+					color,
+					key,
+					value,
+					$elm$core$Dict$removeMin(left),
+					right);
+			} else {
+				var _v4 = $elm$core$Dict$moveRedLeft(dict);
+				if (_v4.$ === 'RBNode_elm_builtin') {
+					var nColor = _v4.a;
+					var nKey = _v4.b;
+					var nValue = _v4.c;
+					var nLeft = _v4.d;
+					var nRight = _v4.e;
+					return A5(
+						$elm$core$Dict$balance,
+						nColor,
+						nKey,
+						nValue,
+						$elm$core$Dict$removeMin(nLeft),
+						nRight);
+				} else {
+					return $elm$core$Dict$RBEmpty_elm_builtin;
+				}
+			}
+		} else {
+			return A5(
+				$elm$core$Dict$RBNode_elm_builtin,
+				color,
+				key,
+				value,
+				$elm$core$Dict$removeMin(left),
+				right);
+		}
+	} else {
+		return $elm$core$Dict$RBEmpty_elm_builtin;
+	}
+};
+var $elm$core$Dict$removeHelp = F2(
+	function (targetKey, dict) {
+		if (dict.$ === 'RBEmpty_elm_builtin') {
+			return $elm$core$Dict$RBEmpty_elm_builtin;
+		} else {
+			var color = dict.a;
+			var key = dict.b;
+			var value = dict.c;
+			var left = dict.d;
+			var right = dict.e;
+			if (_Utils_cmp(targetKey, key) < 0) {
+				if ((left.$ === 'RBNode_elm_builtin') && (left.a.$ === 'Black')) {
+					var _v4 = left.a;
+					var lLeft = left.d;
+					if ((lLeft.$ === 'RBNode_elm_builtin') && (lLeft.a.$ === 'Red')) {
+						var _v6 = lLeft.a;
+						return A5(
+							$elm$core$Dict$RBNode_elm_builtin,
+							color,
+							key,
+							value,
+							A2($elm$core$Dict$removeHelp, targetKey, left),
+							right);
+					} else {
+						var _v7 = $elm$core$Dict$moveRedLeft(dict);
+						if (_v7.$ === 'RBNode_elm_builtin') {
+							var nColor = _v7.a;
+							var nKey = _v7.b;
+							var nValue = _v7.c;
+							var nLeft = _v7.d;
+							var nRight = _v7.e;
+							return A5(
+								$elm$core$Dict$balance,
+								nColor,
+								nKey,
+								nValue,
+								A2($elm$core$Dict$removeHelp, targetKey, nLeft),
+								nRight);
+						} else {
+							return $elm$core$Dict$RBEmpty_elm_builtin;
+						}
+					}
+				} else {
+					return A5(
+						$elm$core$Dict$RBNode_elm_builtin,
+						color,
+						key,
+						value,
+						A2($elm$core$Dict$removeHelp, targetKey, left),
+						right);
+				}
+			} else {
+				return A2(
+					$elm$core$Dict$removeHelpEQGT,
+					targetKey,
+					A7($elm$core$Dict$removeHelpPrepEQGT, targetKey, dict, color, key, value, left, right));
+			}
+		}
+	});
+var $elm$core$Dict$removeHelpEQGT = F2(
+	function (targetKey, dict) {
+		if (dict.$ === 'RBNode_elm_builtin') {
+			var color = dict.a;
+			var key = dict.b;
+			var value = dict.c;
+			var left = dict.d;
+			var right = dict.e;
+			if (_Utils_eq(targetKey, key)) {
+				var _v1 = $elm$core$Dict$getMin(right);
+				if (_v1.$ === 'RBNode_elm_builtin') {
+					var minKey = _v1.b;
+					var minValue = _v1.c;
+					return A5(
+						$elm$core$Dict$balance,
+						color,
+						minKey,
+						minValue,
+						left,
+						$elm$core$Dict$removeMin(right));
+				} else {
+					return $elm$core$Dict$RBEmpty_elm_builtin;
+				}
+			} else {
+				return A5(
+					$elm$core$Dict$balance,
+					color,
+					key,
+					value,
+					left,
+					A2($elm$core$Dict$removeHelp, targetKey, right));
+			}
+		} else {
+			return $elm$core$Dict$RBEmpty_elm_builtin;
+		}
+	});
+var $elm$core$Dict$remove = F2(
+	function (key, dict) {
+		var _v0 = A2($elm$core$Dict$removeHelp, key, dict);
+		if ((_v0.$ === 'RBNode_elm_builtin') && (_v0.a.$ === 'Red')) {
+			var _v1 = _v0.a;
+			var k = _v0.b;
+			var v = _v0.c;
+			var l = _v0.d;
+			var r = _v0.e;
+			return A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, k, v, l, r);
+		} else {
+			var x = _v0;
+			return x;
+		}
+	});
+var $elm$core$Dict$update = F3(
+	function (targetKey, alter, dictionary) {
+		var _v0 = alter(
+			A2($elm$core$Dict$get, targetKey, dictionary));
+		if (_v0.$ === 'Just') {
+			var value = _v0.a;
+			return A3($elm$core$Dict$insert, targetKey, value, dictionary);
+		} else {
+			return A2($elm$core$Dict$remove, targetKey, dictionary);
+		}
+	});
+var $author$project$View$group = A2(
+	$elm$core$List$foldl,
+	function (key) {
+		return A2(
+			$elm$core$Dict$update,
+			key,
+			function (maybe) {
+				return $elm$core$Maybe$Just(
+					A2(
+						$elm$core$Maybe$withDefault,
+						1,
+						A2(
+							$elm$core$Maybe$map,
+							$elm$core$Basics$add(1),
+							maybe)));
+			});
+	},
+	$elm$core$Dict$empty);
 var $author$project$View$viewDeckInfo = F3(
 	function (attrs, label, cards) {
 		return A2(
@@ -6832,15 +7328,29 @@ var $author$project$View$viewDeckInfo = F3(
 							_List_Nil,
 							$elm$html$Html$text(label)),
 							A2(
-							$Orasund$elm_layout$Layout$el,
+							$Orasund$elm_layout$Layout$column,
 							_List_fromArray(
 								[
 									A2($elm$html$Html$Attributes$style, 'font-size', '0.8em')
 								]),
-							$elm$html$Html$text(
-								$elm$core$String$concat(
-									$elm$core$List$sort(
-										A2($elm$core$List$map, $author$project$Card$emoji, cards)))))
+							A2(
+								$elm$core$List$map,
+								function (_v0) {
+									var string = _v0.a;
+									var amount = _v0.b;
+									return A2(
+										$Orasund$elm_layout$Layout$el,
+										_List_Nil,
+										$elm$html$Html$text(
+											$elm$core$String$concat(
+												A2($elm$core$List$repeat, amount, string))));
+								},
+								A2(
+									$elm$core$List$sortBy,
+									$elm$core$Tuple$second,
+									$elm$core$Dict$toList(
+										$author$project$View$group(
+											A2($elm$core$List$map, $author$project$Card$emoji, cards))))))
 						]))));
 	});
 var $author$project$View$viewDeck = F2(
@@ -6854,7 +7364,7 @@ var $author$project$View$viewDeck = F2(
 						A2(
 						$elm$html$Html$Attributes$style,
 						'height',
-						$elm$core$String$fromFloat($author$project$Config$cardHeight + 70) + 'px'),
+						$elm$core$String$fromFloat($author$project$Config$cardHeight + 100) + 'px'),
 						A2(
 						$elm$html$Html$Attributes$style,
 						'width',
@@ -6897,8 +7407,16 @@ var $author$project$Card$description = function (card) {
 			return 'Fly to the next location.';
 		case 'Food':
 			return 'Add 1 Food';
-		default:
+		case 'Predator':
 			return 'Remove 1 Bird';
+		case 'BigPredator':
+			return 'Remove 2 Birds';
+		case 'Friend':
+			return 'Add 1 Bird';
+		case 'LowTide':
+			return 'Add 2 Food';
+		default:
+			return 'Remove all food cards from the deck';
 	}
 };
 var $Orasund$elm_layout$Layout$fillPortion = function (n) {
@@ -6967,8 +7485,16 @@ var $author$project$Card$name = function (card) {
 			return 'Wind';
 		case 'Food':
 			return 'Food';
-		default:
+		case 'Predator':
 			return 'Predator';
+		case 'BigPredator':
+			return 'Big Predator';
+		case 'Friend':
+			return 'Friend';
+		case 'LowTide':
+			return 'Low Tide';
+		default:
+			return 'Competition';
 	}
 };
 var $Orasund$elm_card_game$Game$Entity$mapZIndex = F2(
@@ -7113,7 +7639,6 @@ var $Orasund$elm_card_game$Game$Entity$mapCustomTransformations = F2(
 				customTransformations: fun(entity.customTransformations)
 			});
 	});
-var $elm$core$Basics$not = _Basics_not;
 var $elm$core$Basics$pi = _Basics_pi;
 var $Orasund$elm_card_game$Game$Entity$flippable = F2(
 	function (attrs, args) {
@@ -7574,18 +8099,49 @@ var $author$project$Main$view = function (model) {
 										A2($elm$html$Html$Attributes$style, 'background-color', 'rgba(158,228,147,0.5)')
 									]),
 								A2(
-									$Orasund$elm_layout$Layout$el,
-									_List_Nil,
-									$elm$html$Html$text('You have reached Africa. Your Journey is over')))) : ($author$project$Game$gameOver(model.game) ? $elm$core$Maybe$Just(
+									$Orasund$elm_layout$Layout$column,
+									_List_fromArray(
+										[
+											$Orasund$elm_layout$Layout$spacing($author$project$Config$spacing)
+										]),
+									_List_fromArray(
+										[
+											A2(
+											$Orasund$elm_layout$Layout$el,
+											_List_fromArray(
+												[
+													A2($elm$html$Html$Attributes$style, 'font-size', '80px'),
+													$Orasund$elm_layout$Layout$centerContent
+												]),
+											$elm$html$Html$text('🐘')),
+											A2(
+											$Orasund$elm_layout$Layout$el,
+											_List_Nil,
+											$elm$html$Html$text('You have reached Africa. Your Journey is over'))
+										])))) : ($author$project$Game$gameOver(model.game) ? $elm$core$Maybe$Just(
 							_Utils_Tuple2(
 								_List_fromArray(
 									[
 										A2($elm$html$Html$Attributes$style, 'background-color', 'rgba(100,64,62,0.5)')
 									]),
 								A2(
-									$Orasund$elm_layout$Layout$el,
-									_List_Nil,
-									$elm$html$Html$text('You Journey has ended as you reach Deaths doorstep')))) : ($elm$core$Dict$isEmpty(model.game.cards) ? $elm$core$Maybe$Just(
+									$Orasund$elm_layout$Layout$column,
+									_List_fromArray(
+										[
+											$Orasund$elm_layout$Layout$spacing($author$project$Config$spacing)
+										]),
+									_List_fromArray(
+										[
+											A2(
+											$Orasund$elm_layout$Layout$el,
+											_List_fromArray(
+												[
+													A2($elm$html$Html$Attributes$style, 'font-size', '80px'),
+													$Orasund$elm_layout$Layout$centerContent
+												]),
+											$elm$html$Html$text('💀')),
+											$elm$html$Html$text('Your journey ends at Deaths doorstep')
+										])))) : ($elm$core$Dict$isEmpty(model.game.cards) ? $elm$core$Maybe$Just(
 							_Utils_Tuple2(
 								_List_fromArray(
 									[
