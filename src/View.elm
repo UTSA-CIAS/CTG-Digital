@@ -128,7 +128,7 @@ group =
 
 viewDeckInfo : List (Attribute msg) -> String -> List Card -> Html msg
 viewDeckInfo attrs label cards =
-    [ Html.text label |> Layout.el []
+    [ Html.text label |> Layout.el [ Html.Attributes.style "font-size" "0.8em", Html.Attributes.style "color" "rgba(0,0,0,0.5)" ]
     , cards
         |> List.map Card.emoji
         |> group
@@ -178,6 +178,7 @@ viewGame args game =
                             , deck = game.deckType
                             }
                             |> Game.Entity.map (Tuple.pair (String.fromInt cardId))
+                            |> Game.Entity.mapZIndex ((+) 50)
                             |> Game.Entity.move ( Config.spacing + Config.cardWidth, 0 )
                     )
                 |> Maybe.map List.singleton

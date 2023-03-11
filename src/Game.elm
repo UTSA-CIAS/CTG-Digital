@@ -81,19 +81,31 @@ applyAction action game =
                 |> applyAction action2
 
         DrawCard ->
-            ( drawCard game, [] ) |> Random.constant
+            ( drawCard game, [ Event.PlaySound Event.Draw ] ) |> Random.constant
 
         AddBirdAndThen action2 ->
-            { game | flockSize = game.flockSize + 1 } |> applyAction action2
+            { game | flockSize = game.flockSize + 1 }
+                |> applyAction action2
+                |> Random.map (Tuple.mapSecond ((::) (Event.PlaySound Event.AddBird)))
 
         LooseBirdAndThen action2 ->
             { game | flockSize = game.flockSize - 1 }
                 |> applyAction action2
+                |> Random.map
+                    (\( g, l ) ->
+                        ( g
+                        , if gameOver g then
+                            Event.PlaySound Event.Loose :: l
+
+                          else
+                            l
+                        )
+                    )
 
         Shuffle ->
             game.deck
                 |> shuffle
-                |> Random.map (\deck -> ( { game | deck = deck }, [] ))
+                |> Random.map (\deck -> ( { game | deck = deck }, [ Event.PlaySound Event.Shuffle ] ))
 
         RemoveDeckAndThen action2 ->
             { game
@@ -103,6 +115,18 @@ applyAction action game =
                 , cards = Dict.empty
             }
                 |> applyAction action2
+                |> Random.map
+                    (\( g, l ) ->
+                        ( g
+                        , (if gameWon g then
+                            Event.PlaySound Event.Win
+
+                           else
+                            Event.PlaySound Event.TakeOff
+                          )
+                            :: l
+                        )
+                    )
 
         ChooseNewDeck ->
             Deck.asList
@@ -133,7 +157,7 @@ applyAction action game =
                 | deck = game.deck ++ (game.ground |> Maybe.map List.singleton |> Maybe.withDefault [])
                 , ground = Nothing
               }
-            , []
+            , [ Event.PlaySound Event.Discard ]
             )
                 |> Random.constant
 

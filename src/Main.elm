@@ -60,11 +60,12 @@ init () =
       }
     , Cmd.batch
         [ Random.generate GotSeed Random.independentSeed
+        , setVolume 25
         ]
     )
 
 
-restart : Model -> Model
+restart : Model -> ( Model, Cmd Msg )
 restart model =
     { model
         | game = Game.init
@@ -181,7 +182,7 @@ view model =
             |> Game.Area.toHtml [ Html.Attributes.style "width" "400px" ]
             |> Layout.el [ Layout.centerContent ]
         , View.viewGame { selectCard = SelectCard, redraw = Redraw, restart = Restart } model.game
-            |> Layout.el [ Html.Attributes.style "width" "400px", Html.Attributes.style "height" "500px", Html.Attributes.style "border" "1px solid rgba(0,0,0,0.2)" ]
+            |> Layout.el [ Html.Attributes.style "width" "400px", Html.Attributes.style "height" "500px", Html.Attributes.style "border" "1px solid rgba(0,0,0,0.05)" ]
             |> Layout.withStack ([ Html.Attributes.style "height" "100%", Html.Attributes.style "width" "100%" ] ++ Layout.centered)
                 ((if Game.gameWon model.game then
                     ( [ Html.Attributes.style "background-color" "rgba(158,228,147,0.5)" ]
@@ -314,46 +315,53 @@ button:active {
     }
 
 
-updateGame : (Game -> Generator ( Game, List Event )) -> Model -> Model
+updateGame : (Game -> Generator ( Game, List Event )) -> Model -> ( Model, Cmd Msg )
 updateGame fun model =
     Random.step (fun model.game) model.seed
         |> (\( ( game, events ), seed ) ->
                 events
-                    |> List.foldl applyEvent
-                        { model | game = game, seed = seed }
+                    |> List.foldl
+                        (\event ( m, c ) ->
+                            applyEvent event m
+                                |> Tuple.mapSecond (\head -> head :: c)
+                        )
+                        ( { model | game = game, seed = seed }, [] )
+                    |> Tuple.mapSecond Cmd.batch
            )
 
 
-applyEvent : Event -> Model -> Model
+applyEvent : Event -> Model -> ( Model, Cmd Msg )
 applyEvent event model =
     case event of
         AddActions actions ->
-            { model | actions = actions ++ model.actions }
+            ( { model | actions = actions ++ model.actions }, Cmd.none )
 
         ChooseDeck decks ->
-            { model | selectableDecks = decks }
+            ( { model | selectableDecks = decks }, Cmd.none )
+
+        PlaySound sound ->
+            ( model, Event.toString sound |> playSound )
 
 
-requestAction : Model -> Model
+requestAction : Model -> ( Model, Cmd Msg )
 requestAction model =
     case model.actions of
         head :: tail ->
             { model | actions = tail } |> updateGame (Game.applyAction head)
 
         [] ->
-            model
+            ( model, Cmd.none )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         GotSeed seed ->
-            ( { model | seed = seed, actions = Action.ChooseNewDeck :: model.actions } |> requestAction
-            , Cmd.none
-            )
+            { model | seed = seed, actions = Action.ChooseNewDeck :: model.actions }
+                |> requestAction
 
         SelectCard cardId ->
-            ( { model
+            { model
                 | actions =
                     (model.game.cards
                         |> Dict.get cardId
@@ -361,26 +369,22 @@ update msg model =
                         |> Maybe.withDefault []
                     )
                         ++ model.actions
-              }
+            }
                 |> requestAction
-            , Cmd.none
-            )
 
         ActionRequested ->
-            ( requestAction { model | animationToggle = not model.animationToggle }
-            , Cmd.none
-            )
+            requestAction { model | animationToggle = not model.animationToggle }
 
         Redraw ->
             ( { model | actions = Action.redraw ++ model.actions }, Cmd.none )
 
         SelectDeck deck ->
-            ( { model | actions = Action.chooseDeck deck ++ model.actions, selectableDecks = [] } |> requestAction, Cmd.none )
+            { model | actions = Action.chooseDeck deck ++ model.actions, selectableDecks = [] }
+                |> requestAction
+                |> Tuple.mapSecond (\c -> Cmd.batch [ c, Event.sounds |> List.map loadSound |> Cmd.batch ])
 
         Restart ->
-            ( restart model
-            , Cmd.none
-            )
+            restart model
 
         NewGamePlus ->
             ( { model | game = model.game |> (\g -> { g | remainingRests = Config.totalDistance }) }
