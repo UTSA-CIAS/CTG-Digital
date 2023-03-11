@@ -197,6 +197,16 @@ view model =
                        else
                         [ Html.text "🐘" |> Layout.el [ Html.Attributes.style "font-size" "80px", Layout.centerContent ]
                         , Html.text "You reached Africa. You won the game." |> Layout.el []
+                        , String.fromInt model.game.birdsKilled
+                            ++ " birds of your flock died. "
+                            ++ (if model.game.birdsKilled == 0 then
+                                    "Well done!"
+
+                                else
+                                    "You can do better."
+                               )
+                            |> Html.text
+                            |> Layout.el []
                         , Html.text "Travel back"
                             |> View.viewButton "Travel back" (Just NewGamePlus)
                             |> Layout.el [ Layout.contentCentered ]

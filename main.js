@@ -5434,7 +5434,7 @@ var $author$project$Deck$Beach = {$: 'Beach'};
 var $elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
 var $elm$core$Dict$empty = $elm$core$Dict$RBEmpty_elm_builtin;
 var $author$project$Config$totalDistance = 10;
-var $author$project$Game$init = {cards: $elm$core$Dict$empty, deck: _List_Nil, deckType: $author$project$Deck$Beach, flockSize: 3, food: 3, ground: $elm$core$Maybe$Nothing, remainingRests: $author$project$Config$totalDistance};
+var $author$project$Game$init = {birdsKilled: 0, cards: $elm$core$Dict$empty, deck: _List_Nil, deckType: $author$project$Deck$Beach, flockSize: 3, food: 3, ground: $elm$core$Maybe$Nothing, remainingRests: $author$project$Config$totalDistance};
 var $elm$json$Json$Encode$float = _Json_wrap;
 var $author$project$Main$setVolume = _Platform_outgoingPort('setVolume', $elm$json$Json$Encode$float);
 var $author$project$Main$init = function (_v0) {
@@ -6331,7 +6331,7 @@ var $author$project$Game$applyAction = F2(
 						action2,
 						_Utils_update(
 							game,
-							{flockSize: game.flockSize - 1})));
+							{birdsKilled: game.birdsKilled + 1, flockSize: game.flockSize - 1})));
 			case 'Shuffle':
 				return A2(
 					$elm$random$Random$map,
@@ -8497,6 +8497,11 @@ var $author$project$Main$view = function (model) {
 											$Orasund$elm_layout$Layout$el,
 											_List_Nil,
 											$elm$html$Html$text('You reached Africa. You won the game.')),
+											A2(
+											$Orasund$elm_layout$Layout$el,
+											_List_Nil,
+											$elm$html$Html$text(
+												$elm$core$String$fromInt(model.game.birdsKilled) + (' birds of your flock died. ' + ((!model.game.birdsKilled) ? 'Well done!' : 'You can do better.')))),
 											A2(
 											$Orasund$elm_layout$Layout$el,
 											_List_fromArray(

@@ -17,6 +17,7 @@ type alias Game =
     , food : Int
     , flockSize : Int
     , remainingRests : Int
+    , birdsKilled : Int
     }
 
 
@@ -38,6 +39,7 @@ init =
     , food = 3
     , flockSize = 3
     , remainingRests = Config.totalDistance
+    , birdsKilled = 0
     }
 
 
@@ -89,7 +91,7 @@ applyAction action game =
                 |> Random.map (Tuple.mapSecond ((::) (Event.PlaySound Event.AddBird)))
 
         LooseBirdAndThen action2 ->
-            { game | flockSize = game.flockSize - 1 }
+            { game | flockSize = game.flockSize - 1, birdsKilled = game.birdsKilled + 1 }
                 |> applyAction action2
                 |> Random.map
                     (\( g, l ) ->
