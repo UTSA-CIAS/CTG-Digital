@@ -8,9 +8,14 @@ import Game exposing (Game)
 import Game.Area
 import Game.Card
 import Game.Entity exposing (Entity)
-import Html exposing (Attribute, Html, label)
+import Html exposing (Attribute, Html, label, q)
 import Html.Attributes
 import Layout
+
+
+viewSVG : Card -> String
+viewSVG card =
+    "assets/svg/card/" ++ (Card.name card |> String.toLower |> String.filter Char.isAlpha) ++ ".svg"
 
 
 viewCard : List (Html.Attribute msg) -> { faceUp : Bool, card : Card, deck : Deck } -> Game.Entity.Entity (List (Html.Attribute msg) -> Html msg)
@@ -23,23 +28,33 @@ viewCard attributes args =
         )
         { front =
             (\attrs ->
-                [ Card.emoji args.card
-                    |> Html.text
-                    |> Layout.el
-                        (Html.Attributes.style "font-size" "120px"
-                            :: (case args.card of
-                                    Card.Food ->
-                                        [ Layout.alignAtCenter ]
+                [ if Config.useSvgImages then
+                    viewSVG args.card |> Game.Card.fillingImage []
 
-                                    Card.Friend ->
-                                        [ Layout.alignAtCenter ]
+                  else
+                    Card.emoji args.card
+                        |> Html.text
+                        |> Layout.el
+                            (Html.Attributes.style "font-size" "120px"
+                                :: (case args.card of
+                                        Card.Food ->
+                                            [ Layout.alignAtCenter ]
 
-                                    _ ->
-                                        Layout.centered
-                               )
-                        )
+                                        Card.Friend ->
+                                            [ Layout.alignAtCenter ]
+
+                                        _ ->
+                                            Layout.centered
+                                   )
+                            )
                 ]
-                    |> Game.Card.default (attrs ++ [ Layout.centerContent, Html.Attributes.style "height" (String.fromFloat Config.cardHeight ++ "px") ])
+                    |> Game.Card.default
+                        (attrs
+                            ++ [ Layout.centerContent
+                               , Html.Attributes.style "height" (String.fromFloat Config.cardHeight ++ "px")
+                               , Html.Attributes.style "background-color" (Card.color args.card)
+                               ]
+                        )
             )
                 |> Game.Entity.new
         , back = viewCardBack [] args.deck
@@ -128,16 +143,41 @@ viewDeckInfo : List (Attribute msg) -> String -> List Card -> Html msg
 viewDeckInfo attrs label cards =
     [ Html.text label |> Layout.el [ Html.Attributes.style "font-size" "0.8em", Html.Attributes.style "color" "rgba(0,0,0,0.5)" ]
     , cards
-        |> List.map Card.emoji
+        |> List.map Card.name
         |> group
-        |> Dict.toList
+        |> (\dict ->
+                Card.asList
+                    |> List.map
+                        (\card ->
+                            Dict.get (Card.name card) dict
+                                |> Maybe.withDefault 0
+                                |> Tuple.pair card
+                        )
+           )
         |> List.sortBy Tuple.second
         |> List.map
-            (\( string, amount ) ->
-                List.repeat amount string
-                    |> String.concat
-                    |> Html.text
-                    |> Layout.el []
+            (\( card, amount ) ->
+                List.repeat amount (Card.emoji card)
+                    |> List.map
+                        (\string ->
+                            (if Config.useSvgImages then
+                                viewSVG card |> Game.Card.fillingImage [ Html.Attributes.style "height" "20px" ]
+
+                             else
+                                string
+                                    |> Html.text
+                            )
+                                |> Layout.el
+                                    (Layout.centered
+                                        ++ [ Html.Attributes.style "background-color" (Card.color card)
+                                           , Html.Attributes.style "border-radius" "100%"
+                                           , Html.Attributes.style "height" "20px"
+                                           , Html.Attributes.style "width" "20px"
+                                           , Html.Attributes.style "overflow" "hidden"
+                                           ]
+                                    )
+                        )
+                    |> Layout.row []
             )
         |> Layout.column [ Html.Attributes.style "font-size" "0.8em" ]
     ]

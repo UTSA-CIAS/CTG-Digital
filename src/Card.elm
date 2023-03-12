@@ -17,6 +17,18 @@ type Card
     | Starving
 
 
+asList : List Card
+asList =
+    [ Wind
+    , Food
+    , Predator
+    , Friend
+    , LowTide
+    , Competition
+    , Starving
+    ]
+
+
 emoji : Card -> String
 emoji card =
     case card of
@@ -74,19 +86,54 @@ description card =
             "Fly to the next location."
 
         Food ->
-            "Add 1 " ++ Config.foodEmoji ++ "Food"
+            "Add 1 " ++ Config.foodEmoji
 
         Predator ->
-            "Remove 1 " ++ Config.birdEmoji ++ "Bird"
+            "Remove 1 " ++ Config.birdEmoji
 
         Friend ->
-            "Add 1 " ++ Config.birdEmoji ++ "Bird"
+            "Add 1 " ++ Config.birdEmoji
 
         LowTide ->
-            "Add 2 " ++ Config.foodEmoji ++ "Food"
+            "Add 2 " ++ Config.foodEmoji
 
         Competition ->
-            "Remove all " ++ Config.foodEmoji ++ " food cards from the deck"
+            "Remove all " ++ Config.foodEmoji ++ " from the deck"
 
         Starving ->
-            "Remove 1 " ++ Config.foodEmoji ++ "Food"
+            "Remove 1 " ++ Config.foodEmoji
+
+
+color : Card -> String
+color card =
+    let
+        red =
+            "#f08080"
+
+        green =
+            "#57cc99"
+
+        blue =
+            "#4cc9f0"
+    in
+    case card of
+        Wind ->
+            blue
+
+        Food ->
+            green
+
+        Predator ->
+            red
+
+        Friend ->
+            green
+
+        LowTide ->
+            green
+
+        Competition ->
+            red
+
+        Starving ->
+            red

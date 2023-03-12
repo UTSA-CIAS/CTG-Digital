@@ -4,12 +4,13 @@ import Config
 import Dict
 import Game exposing (Game)
 import Game.Area
+import Game.Entity
 import Html exposing (Html)
 import Html.Attributes
 import Layout
 
 
-toHtml : { animationToggle : Bool, playMusic : msg } -> Game -> Html msg
+toHtml : { animationToggle : Bool, playMusic : msg, birdClicked : Bool } -> Game -> Html msg
 toHtml args game =
     List.repeat game.flockSize
         (\attrs ->
@@ -99,5 +100,43 @@ toHtml args game =
                               )
                         )
             )
+        |> (if not args.birdClicked then
+                (::)
+                    ((\attrs -> Html.text "Click Me" |> Layout.el attrs)
+                        |> Tuple.pair "Click Me"
+                        |> Game.Entity.new
+                        |> Game.Entity.mapZIndex (\_ -> 2001)
+                        |> Game.Entity.mapPosition
+                            (Tuple.mapBoth
+                                ((+)
+                                    (if game.flockSize <= 1 then
+                                        200
+
+                                     else
+                                        toFloat (game.flockSize - 1)
+                                            * 300
+                                            / toFloat (game.flockSize - 1)
+                                    )
+                                )
+                                ((+)
+                                    0
+                                )
+                            )
+                        |> (\entity ->
+                                if args.animationToggle then
+                                    entity
+                                        |> Game.Entity.move ( 30, 20 )
+                                        |> Game.Entity.rotate (pi / 8)
+
+                                else
+                                    entity
+                                        |> Game.Entity.move ( 0, 20 )
+                                        |> Game.Entity.rotate (-pi / 4)
+                           )
+                    )
+
+            else
+                identity
+           )
         |> Game.Area.toHtml [ Html.Attributes.style "width" "400px" ]
         |> Layout.el [ Layout.centerContent ]

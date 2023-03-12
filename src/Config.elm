@@ -29,3 +29,8 @@ foodEmoji =
 totalDistance : Int
 totalDistance =
     10
+
+
+useSvgImages : Bool
+useSvgImages =
+    True

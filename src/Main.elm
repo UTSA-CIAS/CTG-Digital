@@ -38,6 +38,8 @@ type alias Model =
     , actions : List Action
     , animationToggle : Bool
     , reachedAfrica : Bool
+    , birdClicked : Bool
+    , musicLoaded : Bool
     }
 
 
@@ -62,6 +64,8 @@ init () =
       , actions = []
       , reachedAfrica = False
       , animationToggle = False
+      , birdClicked = False
+      , musicLoaded = False
       }
     , Cmd.batch
         [ Random.generate GotSeed Random.independentSeed
@@ -85,7 +89,7 @@ view : Model -> Document Msg
 view model =
     { title = "Waiting For Wind"
     , body =
-        [ View.Bird.toHtml { animationToggle = model.animationToggle, playMusic = PlayMusic } model.game
+        [ View.Bird.toHtml { animationToggle = model.animationToggle, playMusic = PlayMusic, birdClicked = not model.musicLoaded || model.birdClicked } model.game
         , View.viewGame { selectCard = SelectCard, redraw = Redraw } model.game
             |> Layout.el (Layout.centered ++ [ Html.Attributes.style "width" "400px", Html.Attributes.style "height" "500px" ])
             |> Layout.withStack ([ Html.Attributes.style "height" "100%", Html.Attributes.style "width" "100%" ] ++ Layout.centered)
@@ -181,7 +185,7 @@ update msg model =
             { model | actions = Action.redraw ++ model.actions } |> requestAction
 
         SelectDeck deck ->
-            { model | actions = Action.chooseDeck deck ++ model.actions, selectableDecks = [] }
+            { model | actions = Action.chooseDeck deck ++ model.actions, selectableDecks = [], musicLoaded = True }
                 |> requestAction
                 |> Tuple.mapSecond (\c -> Cmd.batch [ c, Event.sounds |> List.map loadSound |> Cmd.batch ])
 
@@ -210,11 +214,15 @@ update msg model =
                 )
 
         PlayMusic ->
-            ( model
-            , Event.sounds
-                |> List.map loadSound
-                |> (::) (playSound (Event.toString Event.Singing))
-                |> Cmd.batch
+            ( { model | birdClicked = model.musicLoaded, musicLoaded = True }
+            , if not model.musicLoaded then
+                Event.sounds
+                    |> List.map loadSound
+                    |> (::) (playSound (Event.toString Event.Singing))
+                    |> Cmd.batch
+
+              else
+                playSound (Event.toString Event.Singing)
             )
 
 

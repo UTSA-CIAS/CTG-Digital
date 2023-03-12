@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <path id="fuse" d="M0 90 A 50 50 0 0 0 50 39 " fill="none" stroke="white" stroke-width="30" />
+    <path d="M50 5, 20 40, 80 40" fill="white" />
+    <path d="M80 0, 100 0, 100 100, 20 100" fill="rgba(0,0,0,0.1)" />
+</svg>
