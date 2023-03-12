@@ -5862,9 +5862,6 @@ var $author$project$Main$subscriptions = function (_v0) {
 		});
 };
 var $author$project$Action$ChooseNewDeck = {$: 'ChooseNewDeck'};
-var $author$project$Main$PerformCmd = function (a) {
-	return {$: 'PerformCmd', a: a};
-};
 var $author$project$Event$Singing = {$: 'Singing'};
 var $author$project$Action$DrawCard = {$: 'DrawCard'};
 var $author$project$Action$NewDeck = function (a) {
@@ -6680,24 +6677,15 @@ var $author$project$Main$update = F2(
 						model,
 						{volume: 0}),
 					$author$project$Main$setVolume(0));
-			case 'PlayMusic':
+			default:
 				return _Utils_Tuple2(
 					model,
 					$elm$core$Platform$Cmd$batch(
 						A2(
 							$elm$core$List$cons,
-							A2(
-								$elm$core$Task$perform,
-								function (_v1) {
-									return $author$project$Main$PerformCmd(
-										$author$project$Main$playSound(
-											$author$project$Event$toString($author$project$Event$Singing)));
-								},
-								$elm$core$Task$succeed(_Utils_Tuple0)),
+							$author$project$Main$playSound(
+								$author$project$Event$toString($author$project$Event$Singing)),
 							A2($elm$core$List$map, $author$project$Main$loadSound, $author$project$Event$sounds))));
-			default:
-				var cmd = msg.a;
-				return _Utils_Tuple2(model, cmd);
 		}
 	});
 var $author$project$Main$NewGamePlus = {$: 'NewGamePlus'};
@@ -6742,7 +6730,7 @@ var $author$project$View$stylesheet = A3(
 	_List_Nil,
 	_List_fromArray(
 		[
-			$elm$html$Html$text('\r\n@font-face {\r\n    font-family: "NotoEmoji";\r\n    src: url("assets/NotoEmoji.ttf");\r\n  }\r\n@font-face {\r\n    font-family: "NotoEmojiColor";\r\n    src: url("assets/NotoEmojiColor.ttf");\r\n  }\r\n:root {\r\n    --back-color1: #e5e5f7;\r\n    --back-color2: #444cf7;\r\n}\r\n\r\n:root,body {\r\n    height:100%;\r\n    background-color:#f4f3ee;\r\n    font-family: serif,"NotoEmojiColor";\r\n}\r\n\r\nbutton {\r\n    font-family: serif,"NotoEmojiColor";\r\n}\r\n\r\nbutton:hover {\r\n    filter: brightness(0.95)\r\n}\r\n\r\nbutton:focus {\r\n    filter: brightness(0.90)\r\n}\r\n\r\nbutton:active {\r\n    filter: brightness(0.7)\r\n}\r\n')
+			$elm$html$Html$text('\r\n@font-face {\r\n    font-family: "NotoEmoji";\r\n    src: url("assets/NotoEmoji.ttf");\r\n  }\r\n@font-face {\r\n    font-family: "NotoEmojiColor";\r\n    src: url("assets/NotoEmojiColor.ttf");\r\n  }\r\n:root {\r\n    --back-color1: #e5e5f7;\r\n    --back-color2: #444cf7;\r\n}\r\n\r\n:root,body {\r\n    height:100%;\r\n    background-color:#f4f3ee;\r\n    font-family: serif,"NotoEmojiColor";\r\n    margin: 0px\r\n}\r\n\r\nbutton {\r\n    font-family: serif,"NotoEmojiColor";\r\n}\r\n\r\nbutton:hover {\r\n    filter: brightness(0.95)\r\n}\r\n\r\nbutton:focus {\r\n    filter: brightness(0.90)\r\n}\r\n\r\nbutton:active {\r\n    filter: brightness(0.7)\r\n}\r\n')
 		]));
 var $elm$virtual_dom$VirtualDom$attribute = F2(
 	function (key, value) {
@@ -7010,11 +6998,7 @@ var $author$project$View$Bird$toHtml = F2(
 										25 * A2(
 											$elm$core$Basics$modBy,
 											2,
-											args.animationToggle ? (i + 1) : i))) : A2(
-									$elm$core$Tuple$mapBoth,
-									$elm$core$Basics$add(
-										args.animationToggle ? 0 : (-20)),
-									$elm$core$Basics$add(0));
+											args.animationToggle ? (i + 1) : i))) : $elm$core$Basics$identity;
 							}),
 						A2(
 							$Orasund$elm_card_game$Game$Area$mapPosition,
@@ -7060,6 +7044,8 @@ var $author$project$View$Bird$toHtml = F2(
 													$elm$html$Html$text($author$project$Config$birdEmoji));
 											})))))))));
 	});
+var $author$project$Config$cardHeight = 150;
+var $author$project$Config$cardWidth = ($author$project$Config$cardHeight * 2) / 3;
 var $Orasund$elm_layout$Layout$column = function (attrs) {
 	return $elm$html$Html$div(
 		_Utils_ap(
@@ -7082,6 +7068,15 @@ var $Orasund$elm_layout$Layout$heading2 = F2(
 			_List_fromArray(
 				[content]));
 	});
+var $Orasund$elm_card_game$Game$Entity$move = function (_v0) {
+	var x = _v0.a;
+	var y = _v0.b;
+	return $Orasund$elm_card_game$Game$Entity$mapPosition(
+		A2(
+			$elm$core$Tuple$mapBoth,
+			$elm$core$Basics$add(x),
+			$elm$core$Basics$add(y)));
+};
 var $author$project$Deck$name = function (deck) {
 	switch (deck.$) {
 		case 'Beach':
@@ -7096,17 +7091,6 @@ var $author$project$Deck$name = function (deck) {
 			return 'Island';
 	}
 };
-var $Orasund$elm_layout$Layout$row = function (attrs) {
-	return $elm$html$Html$div(
-		_Utils_ap(
-			_List_fromArray(
-				[
-					A2($elm$html$Html$Attributes$style, 'display', 'flex'),
-					A2($elm$html$Html$Attributes$style, 'flex-direction', 'row'),
-					A2($elm$html$Html$Attributes$style, 'flex-wrap', 'wrap')
-				]),
-			attrs));
-};
 var $author$project$Config$spacing = 8;
 var $Orasund$elm_layout$Layout$spacing = function (n) {
 	return A2(
@@ -7114,13 +7098,6 @@ var $Orasund$elm_layout$Layout$spacing = function (n) {
 		'gap',
 		$elm$core$String$fromFloat(n) + 'px');
 };
-var $Orasund$elm_card_game$Game$Entity$toHtml = F2(
-	function (attrs, entity) {
-		return entity.content(
-			_Utils_ap(
-				$Orasund$elm_card_game$Game$Entity$toAttributes(entity).b,
-				attrs));
-	});
 var $Orasund$elm_layout$Layout$asEl = A2($elm$html$Html$Attributes$style, 'display', 'flex');
 var $elm$html$Html$button = _VirtualDom_node('button');
 var $Orasund$elm_layout$Layout$buttonEl = F3(
@@ -7205,7 +7182,6 @@ var $Orasund$elm_card_game$Game$Card$back = F2(
 			_List_fromArray(
 				[content]));
 	});
-var $author$project$Config$cardHeight = 150;
 var $author$project$Deck$emoji = function (deck) {
 	switch (deck.$) {
 		case 'Beach':
@@ -7283,17 +7259,14 @@ var $author$project$View$viewCardBack = F2(
 							$author$project$Deck$emoji(deck))));
 			});
 	});
-var $author$project$Config$cardWidth = ($author$project$Config$cardHeight * 2) / 3;
-var $Orasund$elm_card_game$Game$Entity$move = function (_v0) {
-	var x = _v0.a;
-	var y = _v0.b;
-	return $Orasund$elm_card_game$Game$Entity$mapPosition(
-		A2(
-			$elm$core$Tuple$mapBoth,
-			$elm$core$Basics$add(x),
-			$elm$core$Basics$add(y)));
-};
 var $Orasund$elm_layout$Layout$none = $elm$html$Html$text('');
+var $Orasund$elm_card_game$Game$Entity$toHtml = F2(
+	function (attrs, entity) {
+		return entity.content(
+			_Utils_ap(
+				$Orasund$elm_card_game$Game$Entity$toAttributes(entity).b,
+				attrs));
+	});
 var $Orasund$elm_card_game$Game$Entity$pileAbove = F2(
 	function (empty, stack) {
 		return $Orasund$elm_card_game$Game$Entity$new(
@@ -7804,20 +7777,7 @@ var $author$project$View$viewDeck = F2(
 	function (cards, back) {
 		return A2(
 			$Orasund$elm_card_game$Game$Entity$pileAbove,
-			A2(
-				$Orasund$elm_layout$Layout$el,
-				_List_fromArray(
-					[
-						A2(
-						$elm$html$Html$Attributes$style,
-						'height',
-						$elm$core$String$fromFloat($author$project$Config$cardHeight + 100) + 'px'),
-						A2(
-						$elm$html$Html$Attributes$style,
-						'width',
-						$elm$core$String$fromFloat($author$project$Config$cardWidth) + 'px')
-					]),
-				$Orasund$elm_layout$Layout$none),
+			A2($Orasund$elm_layout$Layout$el, _List_Nil, $Orasund$elm_layout$Layout$none),
 			A2(
 				$elm$core$List$cons,
 				A2(
@@ -8039,32 +7999,111 @@ var $author$project$View$Overlay$toHtml = F2(
 										]),
 									$elm$html$Html$text('Where should your flock fly to?')),
 									A2(
-									$Orasund$elm_layout$Layout$row,
+									$Orasund$elm_layout$Layout$el,
 									_List_fromArray(
-										[
-											$Orasund$elm_layout$Layout$spacing($author$project$Config$spacing),
-											$Orasund$elm_layout$Layout$contentCentered
-										]),
+										[$Orasund$elm_layout$Layout$contentCentered]),
 									A2(
-										$elm$core$List$map,
-										function (deck) {
-											return A2(
-												$Orasund$elm_card_game$Game$Entity$toHtml,
-												_List_Nil,
+										$Orasund$elm_card_game$Game$Area$toHtml,
+										_List_fromArray(
+											[
 												A2(
-													$author$project$View$viewDeck,
-													$author$project$Deck$cards(deck),
+												$elm$html$Html$Attributes$style,
+												'height',
+												$elm$core$String$fromFloat($author$project$Config$cardHeight + 100) + 'px'),
+												A2(
+												$elm$html$Html$Attributes$style,
+												'width',
+												$elm$core$String$fromFloat(($author$project$Config$cardWidth * 2) + $author$project$Config$spacing) + 'px')
+											]),
+										_Utils_ap(
+											_List_fromArray(
+												[
 													A2(
-														$author$project$View$viewCardBack,
-														$Orasund$elm_layout$Layout$asButton(
-															{
-																label: 'Select ' + ($author$project$Deck$name(deck) + 'Deck'),
-																onPress: $elm$core$Maybe$Just(
-																	args.selectDeck(deck))
-															}),
-														deck)));
-										},
-										args.selectableDecks)),
+													$Orasund$elm_card_game$Game$Entity$move,
+													_Utils_Tuple2(
+														-150,
+														(-200) + (args.animationToggle ? 50 : 0)),
+													$Orasund$elm_card_game$Game$Entity$new(
+														A2(
+															$elm$core$Tuple$pair,
+															'cloud1',
+															function (attrs) {
+																return A2(
+																	$Orasund$elm_layout$Layout$el,
+																	_Utils_ap(
+																		_List_fromArray(
+																			[
+																				A2($elm$html$Html$Attributes$style, 'font-size', '100px')
+																			]),
+																		attrs),
+																	$elm$html$Html$text('☁️'));
+															}))),
+													A2(
+													$Orasund$elm_card_game$Game$Entity$move,
+													_Utils_Tuple2(
+														150 + $author$project$Config$cardWidth,
+														(-100) + (args.animationToggle ? 50 : 0)),
+													$Orasund$elm_card_game$Game$Entity$new(
+														A2(
+															$elm$core$Tuple$pair,
+															'cloud2',
+															function (attrs) {
+																return A2(
+																	$Orasund$elm_layout$Layout$el,
+																	_Utils_ap(
+																		_List_fromArray(
+																			[
+																				A2($elm$html$Html$Attributes$style, 'font-size', '100px')
+																			]),
+																		attrs),
+																	$elm$html$Html$text('☁️'));
+															}))),
+													A2(
+													$Orasund$elm_card_game$Game$Entity$move,
+													_Utils_Tuple2(
+														-150,
+														100 + (args.animationToggle ? 0 : 50)),
+													$Orasund$elm_card_game$Game$Entity$new(
+														A2(
+															$elm$core$Tuple$pair,
+															'cloud3',
+															function (attrs) {
+																return A2(
+																	$Orasund$elm_layout$Layout$el,
+																	_Utils_ap(
+																		_List_fromArray(
+																			[
+																				A2($elm$html$Html$Attributes$style, 'font-size', '100px')
+																			]),
+																		attrs),
+																	$elm$html$Html$text('☁️'));
+															})))
+												]),
+											A2(
+												$elm$core$List$indexedMap,
+												F2(
+													function (i, deck) {
+														return A2(
+															$Orasund$elm_card_game$Game$Entity$map,
+															$elm$core$Tuple$pair(
+																'deck_' + $elm$core$String$fromInt(i)),
+															A2(
+																$Orasund$elm_card_game$Game$Entity$move,
+																_Utils_Tuple2(i * ($author$project$Config$cardWidth + $author$project$Config$spacing), 0),
+																A2(
+																	$author$project$View$viewDeck,
+																	$author$project$Deck$cards(deck),
+																	A2(
+																		$author$project$View$viewCardBack,
+																		$Orasund$elm_layout$Layout$asButton(
+																			{
+																				label: 'Select ' + ($author$project$Deck$name(deck) + 'Deck'),
+																				onPress: $elm$core$Maybe$Just(
+																					args.selectDeck(deck))
+																			}),
+																		deck))));
+													}),
+												args.selectableDecks)))),
 									A2(
 									$author$project$View$viewStats,
 									{reachedAfrica: args.reachedAfrica},
@@ -8196,6 +8235,17 @@ var $Orasund$elm_card_game$Game$Area$pileAbove = F3(
 					}),
 				list));
 	});
+var $Orasund$elm_layout$Layout$row = function (attrs) {
+	return $elm$html$Html$div(
+		_Utils_ap(
+			_List_fromArray(
+				[
+					A2($elm$html$Html$Attributes$style, 'display', 'flex'),
+					A2($elm$html$Html$Attributes$style, 'flex-direction', 'row'),
+					A2($elm$html$Html$Attributes$style, 'flex-wrap', 'wrap')
+				]),
+			attrs));
+};
 var $Orasund$elm_layout$Layout$spaceBetween = A2($elm$html$Html$Attributes$style, 'justify-content', 'space-between');
 var $Orasund$elm_card_game$Game$Entity$flipTransformation = function (_float) {
 	return 'rotateY(' + ($elm$core$String$fromFloat(_float) + 'rad)');
@@ -8691,7 +8741,7 @@ var $author$project$Main$view = function (model) {
 					$Orasund$elm_layout$Layout$centered),
 				A2(
 					$author$project$View$Overlay$toHtml,
-					{newGamePlus: $author$project$Main$NewGamePlus, reachedAfrica: model.reachedAfrica, restart: $author$project$Main$Restart, selectDeck: $author$project$Main$SelectDeck, selectableDecks: model.selectableDecks},
+					{animationToggle: model.animationToggle, newGamePlus: $author$project$Main$NewGamePlus, reachedAfrica: model.reachedAfrica, restart: $author$project$Main$Restart, selectDeck: $author$project$Main$SelectDeck, selectableDecks: model.selectableDecks},
 					model.game),
 				A2(
 					$Orasund$elm_layout$Layout$el,

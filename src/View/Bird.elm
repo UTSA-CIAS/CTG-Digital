@@ -62,18 +62,7 @@ toHtml args game =
                         )
 
                 else
-                    Tuple.mapBoth
-                        ((+)
-                            (if args.animationToggle then
-                                0
-
-                             else
-                                -20
-                            )
-                        )
-                        ((+)
-                            0
-                        )
+                    identity
             )
         |> Game.Area.mapRotation
             (\i _ ->

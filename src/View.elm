@@ -104,9 +104,7 @@ viewDeck cards back =
             )
         |> Game.Entity.pileAbove
             (Layout.el
-                [ Html.Attributes.style "height" (String.fromFloat (Config.cardHeight + 100) ++ "px")
-                , Html.Attributes.style "width" (String.fromFloat Config.cardWidth ++ "px")
-                ]
+                []
                 Layout.none
             )
 
@@ -339,6 +337,7 @@ stylesheet =
     height:100%;
     background-color:#f4f3ee;
     font-family: serif,"NotoEmojiColor";
+    margin: 0px
 }
 
 button {

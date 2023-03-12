@@ -4,6 +4,7 @@ import Config
 import Deck exposing (Deck)
 import Dict
 import Game exposing (Game)
+import Game.Area
 import Game.Entity
 import Html exposing (Attribute, Html)
 import Html.Attributes
@@ -11,7 +12,7 @@ import Layout
 import View
 
 
-toHtml : { restart : msg, newGamePlus : msg, reachedAfrica : Bool, selectDeck : Deck -> msg, selectableDecks : List Deck } -> Game -> List ( List (Attribute msg), Html msg )
+toHtml : { restart : msg, newGamePlus : msg, reachedAfrica : Bool, selectDeck : Deck -> msg, selectableDecks : List Deck, animationToggle : Bool } -> Game -> List ( List (Attribute msg), Html msg )
 toHtml args game =
     (if Game.gameWon game then
         ( [ Html.Attributes.style "background-color" "rgba(158,228,147,0.5)" ]
@@ -69,17 +70,63 @@ toHtml args game =
         , [ Html.text "Where should your flock fly to?"
                 |> Layout.heading2 [ Html.Attributes.style "padding" (String.fromFloat (Config.spacing + 2) ++ "px 0") ]
           , args.selectableDecks
-                |> List.map
-                    (\deck ->
+                |> List.indexedMap
+                    (\i deck ->
                         View.viewCardBack
                             (Layout.asButton
                                 { onPress = Just (args.selectDeck deck), label = "Select " ++ Deck.name deck ++ "Deck" }
                             )
                             deck
                             |> View.viewDeck (Deck.cards deck)
-                            |> Game.Entity.toHtml []
+                            |> Game.Entity.move ( toFloat i * (Config.cardWidth + Config.spacing), 0 )
+                            |> Game.Entity.map (Tuple.pair ("deck_" ++ String.fromInt i))
                     )
-                |> Layout.row [ Layout.spacing Config.spacing, Layout.contentCentered ]
+                |> (++)
+                    [ (\attrs -> Html.text "☁️" |> Layout.el ([ Html.Attributes.style "font-size" "100px" ] ++ attrs))
+                        |> Tuple.pair "cloud1"
+                        |> Game.Entity.new
+                        |> Game.Entity.move
+                            ( -150
+                            , -200
+                                + (if args.animationToggle then
+                                    50
+
+                                   else
+                                    0
+                                  )
+                            )
+                    , (\attrs -> Html.text "☁️" |> Layout.el ([ Html.Attributes.style "font-size" "100px" ] ++ attrs))
+                        |> Tuple.pair "cloud2"
+                        |> Game.Entity.new
+                        |> Game.Entity.move
+                            ( 150 + Config.cardWidth
+                            , -100
+                                + (if args.animationToggle then
+                                    50
+
+                                   else
+                                    0
+                                  )
+                            )
+                    , (\attrs -> Html.text "☁️" |> Layout.el ([ Html.Attributes.style "font-size" "100px" ] ++ attrs))
+                        |> Tuple.pair "cloud3"
+                        |> Game.Entity.new
+                        |> Game.Entity.move
+                            ( -150
+                            , 100
+                                + (if args.animationToggle then
+                                    0
+
+                                   else
+                                    50
+                                  )
+                            )
+                    ]
+                |> Game.Area.toHtml
+                    [ Html.Attributes.style "height" (String.fromFloat (Config.cardHeight + 100) ++ "px")
+                    , Html.Attributes.style "width" (String.fromFloat (Config.cardWidth * 2 + Config.spacing) ++ "px")
+                    ]
+                |> Layout.el [ Layout.contentCentered ]
           , View.viewStats { reachedAfrica = args.reachedAfrica } game
           ]
             |> Layout.column [ Layout.spacing Config.spacing ]

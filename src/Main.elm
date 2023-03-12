@@ -51,7 +51,6 @@ type Msg
     | NewGamePlus
     | ToggleMute
     | PlayMusic
-    | PerformCmd (Cmd Msg)
 
 
 init : () -> ( Model, Cmd Msg )
@@ -96,6 +95,7 @@ view model =
                     , reachedAfrica = model.reachedAfrica
                     , selectDeck = SelectDeck
                     , selectableDecks = model.selectableDecks
+                    , animationToggle = model.animationToggle
                     }
                     model.game
                 )
@@ -200,12 +200,9 @@ update msg model =
             ( model
             , Event.sounds
                 |> List.map loadSound
-                |> (::) (Task.perform (\_ -> PerformCmd (playSound (Event.toString Event.Singing))) (Task.succeed ()))
+                |> (::) (playSound (Event.toString Event.Singing))
                 |> Cmd.batch
             )
-
-        PerformCmd cmd ->
-            ( model, cmd )
 
 
 subscriptions : Model -> Sub Msg
