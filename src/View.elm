@@ -158,7 +158,7 @@ viewDeckInfo attrs label cards =
             )
 
 
-viewGame : { selectCard : CardId -> msg, redraw : msg, restart : msg, toggleMute : msg, isMute : Bool } -> Game -> Html msg
+viewGame : { selectCard : CardId -> msg, redraw : msg, restart : msg, toggleMute : msg, isMute : Bool, reachedAfrica : Bool } -> Game -> Html msg
 viewGame args game =
     [ [ Html.text "Waiting for Wind" |> Layout.heading1 [ Layout.contentCentered ]
       ]
@@ -212,7 +212,7 @@ viewGame args game =
         , game.ground
             |> Maybe.andThen (\cardId -> Dict.get cardId game.cards |> Maybe.map (Tuple.pair cardId))
             |> Maybe.map
-                (\( cardId, card ) ->
+                (\( _, card ) ->
                     [ Card.name card |> Html.text |> Layout.el [ Html.Attributes.style "font-weight" "bold" ]
                     , Card.description card |> Html.text
                     ]
@@ -242,7 +242,7 @@ viewGame args game =
             |> Layout.el [ Layout.contentCentered ]
       ]
         |> Layout.column [ Layout.spacing Config.spacing ]
-    , [ viewStats game
+    , [ viewStats { reachedAfrica = args.reachedAfrica } game
       , [ Html.text "Restart"
             |> viewButton "Restart" (Just args.restart)
             |> Layout.el [ Layout.contentCentered, Layout.alignAtEnd ]
@@ -265,27 +265,43 @@ viewGame args game =
         |> Layout.column [ Layout.spaceBetween, Layout.fill ]
 
 
-viewStats : Game -> Html msg
-viewStats game =
+viewStats : { reachedAfrica : Bool } -> Game -> Html msg
+viewStats args game =
     [ "Food: " ++ (List.repeat game.food Config.foodEmoji |> String.concat) |> Html.text |> Layout.el []
-    , viewDistanceTraveled game
+    , viewDistanceTraveled args game
         |> Html.text
         |> Layout.el []
     ]
         |> Layout.column [ Layout.spacing Config.spacing ]
 
 
-viewDistanceTraveled : Game -> String
-viewDistanceTraveled game =
+viewDistanceTraveled : { reachedAfrica : Bool } -> Game -> String
+viewDistanceTraveled args game =
     "Distance Traveled: "
-        ++ (if game.remainingRests == Config.totalDistance then
+        ++ (if game.remainingRests == Config.totalDistance && not args.reachedAfrica then
                 "0"
 
             else
-                String.fromInt (Config.totalDistance - game.remainingRests) ++ ".000"
+                String.fromInt
+                    (Config.totalDistance
+                        - game.remainingRests
+                        + (if args.reachedAfrica then
+                            Config.totalDistance
+
+                           else
+                            0
+                          )
+                    )
+                    ++ ".000"
            )
         ++ " km / "
-        ++ String.fromInt Config.totalDistance
+        ++ String.fromInt
+            (if args.reachedAfrica then
+                Config.totalDistance * 2
+
+             else
+                Config.totalDistance
+            )
         ++ ".000 km"
 
 
@@ -299,3 +315,47 @@ viewButton label onClick content =
             , Html.Attributes.style "background-color" "#9EE493"
             , Html.Attributes.disabled (onClick == Nothing)
             ]
+
+
+stylesheet : Html msg
+stylesheet =
+    Html.node "style"
+        []
+        [ """
+@font-face {
+    font-family: "NotoEmoji";
+    src: url("assets/NotoEmoji.ttf");
+  }
+@font-face {
+    font-family: "NotoEmojiColor";
+    src: url("assets/NotoEmojiColor.ttf");
+  }
+:root {
+    --back-color1: #e5e5f7;
+    --back-color2: #444cf7;
+}
+
+:root,body {
+    height:100%;
+    background-color:#f4f3ee;
+    font-family: serif,"NotoEmojiColor";
+}
+
+button {
+    font-family: serif,"NotoEmojiColor";
+}
+
+button:hover {
+    filter: brightness(0.95)
+}
+
+button:focus {
+    filter: brightness(0.90)
+}
+
+button:active {
+    filter: brightness(0.7)
+}
+"""
+            |> Html.text
+        ]

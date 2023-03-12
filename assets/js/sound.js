@@ -5,9 +5,10 @@ function loadSound(file, name) {
 }
 
 function playSound(name) {
-    var instance = createjs.Sound.play(name, { volume: 0.125 * volume })
+    createjs.Sound.play(name, { volume: 0.125 * volume })
 }
 
 function setVolume(amount) {
+    createjs.Sound.volume = 0.125 * amount
     volume = amount
 }

@@ -18,6 +18,7 @@ type Sound
     | Loose
     | Win
     | AddBird
+    | Singing
 
 
 toString : Sound -> String
@@ -44,6 +45,9 @@ toString sound =
         AddBird ->
             "AddBird"
 
+        Singing ->
+            "Singing"
+
 
 sounds : List ( String, String )
 sounds =
@@ -54,4 +58,5 @@ sounds =
     , ( "error.wav", toString Loose )
     , ( "amb_bird_2.mp3", toString Win )
     , ( "bird.mp3", toString AddBird )
+    , ( "birdiSong.mp3", toString Singing )
     ]

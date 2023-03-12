@@ -13,6 +13,7 @@ type Card
     | Friend
     | LowTide
     | Eagle
+    | Starving
 
 
 emoji : Card -> String
@@ -39,6 +40,9 @@ emoji card =
         Eagle ->
             "🦅"
 
+        Starving ->
+            "😵\u{200D}💫"
+
 
 name : Card -> String
 name card =
@@ -64,6 +68,9 @@ name card =
         Eagle ->
             "Competition"
 
+        Starving ->
+            "Starving"
+
 
 description : Card -> String
 description card =
@@ -88,3 +95,6 @@ description card =
 
         Eagle ->
             "Remove all food cards from the deck"
+
+        Starving ->
+            "Remove 1 Food"

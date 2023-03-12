@@ -42,6 +42,9 @@ fromCard card =
         Eagle ->
             [ FilterDeck ((/=) Food), DrawCard ]
 
+        Starving ->
+            [ IfEnoughFoodAndThen 1 [ AddFoodAndThen -1 DrawCard ] [ DrawCard ] ]
+
 
 chooseDeck : Deck -> List Action
 chooseDeck deck =
