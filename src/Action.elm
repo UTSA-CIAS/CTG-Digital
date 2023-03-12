@@ -30,16 +30,13 @@ fromCard card =
         Predator ->
             [ LooseBirdAndThen DrawCard ]
 
-        BigPredator ->
-            [ LooseBirdAndThen (LooseBirdAndThen DrawCard) ]
-
         Friend ->
             [ AddBirdAndThen DrawCard ]
 
         LowTide ->
             [ AddFoodAndThen 2 DrawCard ]
 
-        Eagle ->
+        Competition ->
             [ FilterDeck ((/=) Food), DrawCard ]
 
         Starving ->

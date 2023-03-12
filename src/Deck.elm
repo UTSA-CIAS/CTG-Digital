@@ -96,7 +96,7 @@ cards deck =
             [ List.repeat 1 Card.Wind
             , List.repeat 4 Card.Food
             , List.repeat 4 Card.Predator
-            , List.repeat 1 Card.Eagle
+            , List.repeat 1 Card.Competition
             ]
                 |> List.concat
 

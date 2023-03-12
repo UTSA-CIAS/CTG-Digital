@@ -26,7 +26,7 @@ viewCard attributes args =
                 [ Card.emoji args.card
                     |> Html.text
                     |> Layout.el
-                        (Html.Attributes.style "font-size" "100px"
+                        (Html.Attributes.style "font-size" "120px"
                             :: (case args.card of
                                     Card.Food ->
                                         [ Layout.alignAtCenter ]
@@ -156,7 +156,7 @@ viewDeckInfo attrs label cards =
             )
 
 
-viewGame : { selectCard : CardId -> msg, redraw : msg, restart : msg, toggleMute : msg, isMute : Bool, reachedAfrica : Bool } -> Game -> Html msg
+viewGame : { selectCard : CardId -> msg, redraw : msg } -> Game -> Html msg
 viewGame args game =
     [ [ Html.text "Waiting for Wind" |> Layout.heading1 [ Layout.contentCentered ]
       ]
@@ -239,38 +239,63 @@ viewGame args game =
             |> Layout.column [ Html.Attributes.style "width" (String.fromFloat Config.cardWidth ++ "px") ]
             |> Layout.el [ Layout.contentCentered ]
       ]
-        |> Layout.column [ Layout.spacing Config.spacing ]
-    , [ viewStats { reachedAfrica = args.reachedAfrica } game
-      , [ Html.text "Restart"
+        |> Layout.column [ Layout.spacing Config.spacing, Layout.contentCentered ]
+    ]
+        |> Layout.column Layout.centered
+
+
+viewStats : { toggleMute : msg, restart : msg, reachedAfrica : Bool, isMute : Bool, animationToggle : Bool } -> Game -> Html msg
+viewStats args game =
+    [ [ List.repeat game.food Config.foodEmoji
+            |> List.indexedMap
+                (\i content ->
+                    (\attrs ->
+                        content
+                            |> Html.text
+                            |> Layout.el attrs
+                    )
+                        |> Game.Entity.new
+                        |> Game.Entity.move
+                            ( if game.food == 1 then
+                                Config.cardWidth / 2
+
+                              else
+                                toFloat i * (Config.cardWidth * 3 - 80 - 40) / (game.food - 1 |> toFloat)
+                            , -5
+                            )
+                        |> Game.Entity.rotate
+                            (if args.animationToggle then
+                                -pi / 16
+
+                             else
+                                pi / 16
+                            )
+                )
+            |> Game.Entity.pileAbove Layout.none
+            |> Game.Entity.toHtml [ Html.Attributes.style "font-size" "2em", Html.Attributes.style "height" "30px" ]
+      , viewDistanceTraveled { reachedAfrica = args.reachedAfrica } game
+            |> Html.text
+            |> Layout.el []
+      ]
+        |> Layout.column [ Layout.spacing Config.spacing, Html.Attributes.style "width" (String.fromFloat (Config.cardWidth * 3 - 80) ++ "px") ]
+    , [ Html.text "Restart"
             |> viewButton "Restart" (Just args.restart)
             |> Layout.el [ Layout.contentCentered, Layout.alignAtEnd ]
-        , (if args.isMute then
+      , (if args.isMute then
             "🔊 Unmute"
 
-           else
+         else
             "🔇 Mute"
-          )
+        )
             |> (\label ->
                     label
                         |> Html.text
                         |> viewButton label (Just args.toggleMute)
                )
-        ]
-            |> Layout.column [ Layout.spacing Config.spacing ]
       ]
-        |> Layout.row [ Layout.spaceBetween ]
-    ]
-        |> Layout.column [ Layout.spaceBetween, Layout.fill ]
-
-
-viewStats : { reachedAfrica : Bool } -> Game -> Html msg
-viewStats args game =
-    [ "Food: " ++ (List.repeat game.food Config.foodEmoji |> String.concat) |> Html.text |> Layout.el []
-    , viewDistanceTraveled args game
-        |> Html.text
-        |> Layout.el []
-    ]
         |> Layout.column [ Layout.spacing Config.spacing ]
+    ]
+        |> Layout.row [ Layout.spacing Config.spacing ]
 
 
 viewDistanceTraveled : { reachedAfrica : Bool } -> Game -> String

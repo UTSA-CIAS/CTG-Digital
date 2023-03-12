@@ -1,5 +1,7 @@
 module Card exposing (..)
 
+import Config
+
 
 type alias CardId =
     Int
@@ -9,10 +11,9 @@ type Card
     = Wind
     | Food
     | Predator
-    | BigPredator
     | Friend
     | LowTide
-    | Eagle
+    | Competition
     | Starving
 
 
@@ -28,16 +29,13 @@ emoji card =
         Predator ->
             "😾"
 
-        BigPredator ->
-            "🦁"
-
         Friend ->
             "🐦"
 
         LowTide ->
             "🦐"
 
-        Eagle ->
+        Competition ->
             "🦅"
 
         Starving ->
@@ -56,16 +54,13 @@ name card =
         Predator ->
             "Predator"
 
-        BigPredator ->
-            "Big Predator"
-
         Friend ->
             "Friend"
 
         LowTide ->
             "Low Tide"
 
-        Eagle ->
+        Competition ->
             "Competition"
 
         Starving ->
@@ -79,22 +74,19 @@ description card =
             "Fly to the next location."
 
         Food ->
-            "Add 1 Food"
+            "Add 1 " ++ Config.foodEmoji ++ "Food"
 
         Predator ->
-            "Remove 1 Bird"
-
-        BigPredator ->
-            "Remove 2 Birds"
+            "Remove 1 " ++ Config.birdEmoji ++ "Bird"
 
         Friend ->
-            "Add 1 Bird"
+            "Add 1 " ++ Config.birdEmoji ++ "Bird"
 
         LowTide ->
-            "Add 2 Food"
+            "Add 2 " ++ Config.foodEmoji ++ "Food"
 
-        Eagle ->
-            "Remove all food cards from the deck"
+        Competition ->
+            "Remove all " ++ Config.foodEmoji ++ " food cards from the deck"
 
         Starving ->
-            "Remove 1 Food"
+            "Remove 1 " ++ Config.foodEmoji ++ "Food"

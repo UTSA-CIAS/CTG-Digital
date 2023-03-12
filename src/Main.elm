@@ -86,18 +86,31 @@ view model =
     { title = "Waiting For Wind"
     , body =
         [ View.Bird.toHtml { animationToggle = model.animationToggle, playMusic = PlayMusic } model.game
-        , View.viewGame { selectCard = SelectCard, redraw = Redraw, restart = Restart, toggleMute = ToggleMute, isMute = model.volume == 0, reachedAfrica = model.reachedAfrica } model.game
-            |> Layout.el [ Html.Attributes.style "width" "400px", Html.Attributes.style "height" "500px", Html.Attributes.style "border" "1px solid rgba(0,0,0,0.05)" ]
+        , View.viewGame { selectCard = SelectCard, redraw = Redraw } model.game
+            |> Layout.el (Layout.centered ++ [ Html.Attributes.style "width" "400px", Html.Attributes.style "height" "500px" ])
             |> Layout.withStack ([ Html.Attributes.style "height" "100%", Html.Attributes.style "width" "100%" ] ++ Layout.centered)
-                (View.Overlay.toHtml
-                    { restart = Restart
-                    , newGamePlus = NewGamePlus
-                    , reachedAfrica = model.reachedAfrica
-                    , selectDeck = SelectDeck
-                    , selectableDecks = model.selectableDecks
-                    , animationToggle = model.animationToggle
-                    }
-                    model.game
+                ([ model.game
+                    |> View.viewStats
+                        { reachedAfrica = model.reachedAfrica
+                        , isMute = model.volume == 0
+                        , restart = Restart
+                        , toggleMute = ToggleMute
+                        , animationToggle = model.animationToggle
+                        }
+                    |> Tuple.pair [ Html.Attributes.style "bottom" (String.fromFloat Config.spacing ++ "px"), Html.Attributes.style "z-index" "1000" ]
+                 ]
+                    |> (View.Overlay.toHtml
+                            { restart = Restart
+                            , newGamePlus = NewGamePlus
+                            , reachedAfrica = model.reachedAfrica
+                            , selectDeck = SelectDeck
+                            , selectableDecks = model.selectableDecks
+                            , animationToggle = model.animationToggle
+                            }
+                            model.game
+                            |> Maybe.map (::)
+                            |> Maybe.withDefault identity
+                       )
                 )
         , View.stylesheet
         ]

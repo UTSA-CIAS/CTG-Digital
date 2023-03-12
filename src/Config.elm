@@ -3,7 +3,7 @@ module Config exposing (..)
 
 cardHeight : Float
 cardHeight =
-    150
+    180
 
 
 cardWidth : Float

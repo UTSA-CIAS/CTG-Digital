@@ -5915,12 +5915,6 @@ var $author$project$Action$fromCard = function (card) {
 				[
 					$author$project$Action$LooseBirdAndThen($author$project$Action$DrawCard)
 				]);
-		case 'BigPredator':
-			return _List_fromArray(
-				[
-					$author$project$Action$LooseBirdAndThen(
-					$author$project$Action$LooseBirdAndThen($author$project$Action$DrawCard))
-				]);
 		case 'Friend':
 			return _List_fromArray(
 				[
@@ -5931,7 +5925,7 @@ var $author$project$Action$fromCard = function (card) {
 				[
 					A2($author$project$Action$AddFoodAndThen, 2, $author$project$Action$DrawCard)
 				]);
-		case 'Eagle':
+		case 'Competition':
 			return _List_fromArray(
 				[
 					$author$project$Action$FilterDeck(
@@ -6026,7 +6020,7 @@ var $author$project$Deck$Savanna = {$: 'Savanna'};
 var $author$project$Deck$Valley = {$: 'Valley'};
 var $author$project$Deck$asList = _List_fromArray(
 	[$author$project$Deck$Beach, $author$project$Deck$Desert, $author$project$Deck$Valley, $author$project$Deck$Savanna, $author$project$Deck$Island]);
-var $author$project$Card$Eagle = {$: 'Eagle'};
+var $author$project$Card$Competition = {$: 'Competition'};
 var $author$project$Card$Friend = {$: 'Friend'};
 var $author$project$Card$LowTide = {$: 'LowTide'};
 var $author$project$Card$Predator = {$: 'Predator'};
@@ -6091,7 +6085,7 @@ var $author$project$Deck$cards = function (deck) {
 						A2($elm$core$List$repeat, 1, $author$project$Card$Wind),
 						A2($elm$core$List$repeat, 4, $author$project$Card$Food),
 						A2($elm$core$List$repeat, 4, $author$project$Card$Predator),
-						A2($elm$core$List$repeat, 1, $author$project$Card$Eagle)
+						A2($elm$core$List$repeat, 1, $author$project$Card$Competition)
 					]));
 		case 'Savanna':
 			return $elm$core$List$concat(
@@ -6717,6 +6711,8 @@ var $Orasund$elm_layout$Layout$el = F2(
 			_List_fromArray(
 				[content]));
 	});
+var $elm$core$String$fromFloat = _String_fromNumber;
+var $author$project$Config$spacing = 8;
 var $elm$virtual_dom$VirtualDom$node = function (tag) {
 	return _VirtualDom_node(
 		_VirtualDom_noScript(tag));
@@ -6891,7 +6887,6 @@ var $elm$virtual_dom$VirtualDom$keyedNode = function (tag) {
 		_VirtualDom_noScript(tag));
 };
 var $elm$html$Html$Keyed$node = $elm$virtual_dom$VirtualDom$keyedNode;
-var $elm$core$String$fromFloat = _String_fromNumber;
 var $Orasund$elm_card_game$Game$Entity$moveTransformation = function (_v0) {
 	var x = _v0.a;
 	var y = _v0.b;
@@ -7044,7 +7039,7 @@ var $author$project$View$Bird$toHtml = F2(
 													$elm$html$Html$text($author$project$Config$birdEmoji));
 											})))))))));
 	});
-var $author$project$Config$cardHeight = 150;
+var $author$project$Config$cardHeight = 180;
 var $author$project$Config$cardWidth = ($author$project$Config$cardHeight * 2) / 3;
 var $Orasund$elm_layout$Layout$column = function (attrs) {
 	return $elm$html$Html$div(
@@ -7091,7 +7086,6 @@ var $author$project$Deck$name = function (deck) {
 			return 'Island';
 	}
 };
-var $author$project$Config$spacing = 8;
 var $Orasund$elm_layout$Layout$spacing = function (n) {
 	return A2(
 		$elm$html$Html$Attributes$style,
@@ -7304,13 +7298,11 @@ var $author$project$Card$emoji = function (card) {
 			return '\uD83E\uDEB1';
 		case 'Predator':
 			return '😾';
-		case 'BigPredator':
-			return '🦁';
 		case 'Friend':
 			return '🐦';
 		case 'LowTide':
 			return '🦐';
-		case 'Eagle':
+		case 'Competition':
 			return '🦅';
 		default:
 			return '😵\u200D💫';
@@ -7805,312 +7797,277 @@ var $author$project$View$viewDistanceTraveled = F2(
 			($author$project$Config$totalDistance - game.remainingRests) + (args.reachedAfrica ? $author$project$Config$totalDistance : 0)) + '.000')) + (' km / ' + ($elm$core$String$fromInt(
 			args.reachedAfrica ? ($author$project$Config$totalDistance * 2) : $author$project$Config$totalDistance) + '.000 km')));
 	});
-var $author$project$Config$foodEmoji = '\uD83E\uDEB1';
-var $author$project$View$viewStats = F2(
-	function (args, game) {
-		return A2(
-			$Orasund$elm_layout$Layout$column,
-			_List_fromArray(
-				[
-					$Orasund$elm_layout$Layout$spacing($author$project$Config$spacing)
-				]),
-			_List_fromArray(
-				[
-					A2(
-					$Orasund$elm_layout$Layout$el,
-					_List_Nil,
-					$elm$html$Html$text(
-						'Food: ' + $elm$core$String$concat(
-							A2($elm$core$List$repeat, game.food, $author$project$Config$foodEmoji)))),
-					A2(
-					$Orasund$elm_layout$Layout$el,
-					_List_Nil,
-					$elm$html$Html$text(
-						A2($author$project$View$viewDistanceTraveled, args, game)))
-				]));
-	});
 var $author$project$View$Overlay$toHtml = F2(
 	function (args, game) {
 		return A2(
-			$elm$core$Maybe$withDefault,
-			_List_Nil,
-			A2(
-				$elm$core$Maybe$map,
-				function (_v0) {
-					var attrs = _v0.a;
-					var content = _v0.b;
-					return _List_fromArray(
+			$elm$core$Maybe$map,
+			function (_v0) {
+				var attrs = _v0.a;
+				var content = _v0.b;
+				return _Utils_Tuple2(
+					_List_fromArray(
 						[
-							_Utils_Tuple2(
-							_List_fromArray(
-								[
-									A2($elm$html$Html$Attributes$style, 'width', '100%'),
-									A2($elm$html$Html$Attributes$style, 'height', '100%')
-								]),
-							A2(
+							A2($elm$html$Html$Attributes$style, 'width', '100%'),
+							A2($elm$html$Html$Attributes$style, 'height', '100%')
+						]),
+					A2(
+						$Orasund$elm_layout$Layout$el,
+						_Utils_ap(
+							$Orasund$elm_layout$Layout$centered,
+							_Utils_ap(
+								_List_fromArray(
+									[
+										A2($elm$html$Html$Attributes$style, 'width', '100%'),
+										A2($elm$html$Html$Attributes$style, 'height', '100%'),
+										A2($elm$html$Html$Attributes$style, 'backdrop-filter', 'blur(4px)'),
+										A2($elm$html$Html$Attributes$style, 'z-index', '100'),
+										A2($elm$html$Html$Attributes$style, 'position', 'relative')
+									]),
+								attrs)),
+						content));
+			},
+			$author$project$Game$gameWon(game) ? $elm$core$Maybe$Just(
+				_Utils_Tuple2(
+					_List_fromArray(
+						[
+							A2($elm$html$Html$Attributes$style, 'background-color', 'rgba(158,228,147,0.5)')
+						]),
+					A2(
+						$Orasund$elm_layout$Layout$column,
+						_List_fromArray(
+							[
+								$Orasund$elm_layout$Layout$spacing($author$project$Config$spacing)
+							]),
+						args.reachedAfrica ? _List_fromArray(
+							[
+								A2(
 								$Orasund$elm_layout$Layout$el,
-								_Utils_ap(
-									$Orasund$elm_layout$Layout$centered,
-									_Utils_ap(
-										_List_fromArray(
-											[
-												A2($elm$html$Html$Attributes$style, 'width', '100%'),
-												A2($elm$html$Html$Attributes$style, 'height', '100%'),
-												A2($elm$html$Html$Attributes$style, 'backdrop-filter', 'blur(4px)'),
-												A2($elm$html$Html$Attributes$style, 'z-index', '100'),
-												A2($elm$html$Html$Attributes$style, 'position', 'relative')
-											]),
-										attrs)),
-								content))
-						]);
-				},
-				$author$project$Game$gameWon(game) ? $elm$core$Maybe$Just(
-					_Utils_Tuple2(
+								_List_fromArray(
+									[
+										A2($elm$html$Html$Attributes$style, 'font-size', '80px'),
+										$Orasund$elm_layout$Layout$centerContent
+									]),
+								$elm$html$Html$text('\uD83E\uDEBA')),
+								A2(
+								$Orasund$elm_layout$Layout$el,
+								_List_Nil,
+								$elm$html$Html$text('You are back home. Well done!')),
+								A2(
+								$Orasund$elm_layout$Layout$el,
+								_List_fromArray(
+									[$Orasund$elm_layout$Layout$contentCentered]),
+								A3(
+									$author$project$View$viewButton,
+									'Restart',
+									$elm$core$Maybe$Just(args.restart),
+									$elm$html$Html$text('Restart')))
+							]) : _List_fromArray(
+							[
+								A2(
+								$Orasund$elm_layout$Layout$el,
+								_List_fromArray(
+									[
+										A2($elm$html$Html$Attributes$style, 'font-size', '80px'),
+										$Orasund$elm_layout$Layout$centerContent
+									]),
+								$elm$html$Html$text('🐘')),
+								A2(
+								$Orasund$elm_layout$Layout$el,
+								_List_Nil,
+								$elm$html$Html$text('You reached Africa. You won the game.')),
+								A2(
+								$Orasund$elm_layout$Layout$el,
+								_List_Nil,
+								$elm$html$Html$text(
+									$elm$core$String$fromInt(game.birdsKilled) + (' birds of your flock died. ' + ((!game.birdsKilled) ? 'Well done!' : 'You can do better.')))),
+								A2(
+								$Orasund$elm_layout$Layout$el,
+								_List_fromArray(
+									[$Orasund$elm_layout$Layout$contentCentered]),
+								A3(
+									$author$project$View$viewButton,
+									'Travel back',
+									$elm$core$Maybe$Just(args.newGamePlus),
+									$elm$html$Html$text('Travel back')))
+							])))) : ($author$project$Game$gameOver(game) ? $elm$core$Maybe$Just(
+				_Utils_Tuple2(
+					_List_fromArray(
+						[
+							A2($elm$html$Html$Attributes$style, 'background-color', 'rgba(100,64,62,0.5)')
+						]),
+					A2(
+						$Orasund$elm_layout$Layout$column,
 						_List_fromArray(
 							[
-								A2($elm$html$Html$Attributes$style, 'background-color', 'rgba(158,228,147,0.5)')
+								$Orasund$elm_layout$Layout$spacing($author$project$Config$spacing),
+								A2($elm$html$Html$Attributes$style, 'background-color', 'white'),
+								A2($elm$html$Html$Attributes$style, 'border-radius', '16px'),
+								A2($elm$html$Html$Attributes$style, 'border', '1px solid rgba(0,0,0,0.2)'),
+								A2(
+								$elm$html$Html$Attributes$style,
+								'padding',
+								$elm$core$String$fromFloat($author$project$Config$spacing) + 'px')
 							]),
-						A2(
-							$Orasund$elm_layout$Layout$column,
-							_List_fromArray(
-								[
-									$Orasund$elm_layout$Layout$spacing($author$project$Config$spacing)
-								]),
-							args.reachedAfrica ? _List_fromArray(
-								[
-									A2(
-									$Orasund$elm_layout$Layout$el,
-									_List_fromArray(
-										[
-											A2($elm$html$Html$Attributes$style, 'font-size', '80px'),
-											$Orasund$elm_layout$Layout$centerContent
-										]),
-									$elm$html$Html$text('\uD83E\uDEBA')),
-									A2(
-									$Orasund$elm_layout$Layout$el,
-									_List_Nil,
-									$elm$html$Html$text('You are back home. Well done!')),
-									A2(
-									$Orasund$elm_layout$Layout$el,
-									_List_fromArray(
-										[$Orasund$elm_layout$Layout$contentCentered]),
-									A3(
-										$author$project$View$viewButton,
-										'Restart',
-										$elm$core$Maybe$Just(args.restart),
-										$elm$html$Html$text('Restart')))
-								]) : _List_fromArray(
-								[
-									A2(
-									$Orasund$elm_layout$Layout$el,
-									_List_fromArray(
-										[
-											A2($elm$html$Html$Attributes$style, 'font-size', '80px'),
-											$Orasund$elm_layout$Layout$centerContent
-										]),
-									$elm$html$Html$text('🐘')),
-									A2(
-									$Orasund$elm_layout$Layout$el,
-									_List_Nil,
-									$elm$html$Html$text('You reached Africa. You won the game.')),
-									A2(
-									$Orasund$elm_layout$Layout$el,
-									_List_Nil,
-									$elm$html$Html$text(
-										$elm$core$String$fromInt(game.birdsKilled) + (' birds of your flock died. ' + ((!game.birdsKilled) ? 'Well done!' : 'You can do better.')))),
-									A2(
-									$Orasund$elm_layout$Layout$el,
-									_List_fromArray(
-										[$Orasund$elm_layout$Layout$contentCentered]),
-									A3(
-										$author$project$View$viewButton,
-										'Travel back',
-										$elm$core$Maybe$Just(args.newGamePlus),
-										$elm$html$Html$text('Travel back')))
-								])))) : ($author$project$Game$gameOver(game) ? $elm$core$Maybe$Just(
-					_Utils_Tuple2(
 						_List_fromArray(
 							[
-								A2($elm$html$Html$Attributes$style, 'background-color', 'rgba(100,64,62,0.5)')
-							]),
-						A2(
-							$Orasund$elm_layout$Layout$column,
-							_List_fromArray(
-								[
-									$Orasund$elm_layout$Layout$spacing($author$project$Config$spacing),
-									A2($elm$html$Html$Attributes$style, 'background-color', 'white'),
-									A2($elm$html$Html$Attributes$style, 'border-radius', '16px'),
-									A2($elm$html$Html$Attributes$style, 'border', '1px solid rgba(0,0,0,0.2)'),
-									A2(
-									$elm$html$Html$Attributes$style,
-									'padding',
-									$elm$core$String$fromFloat($author$project$Config$spacing) + 'px')
-								]),
-							_List_fromArray(
-								[
-									A2(
-									$Orasund$elm_layout$Layout$el,
-									_List_fromArray(
-										[
-											A2($elm$html$Html$Attributes$style, 'font-size', '80px'),
-											$Orasund$elm_layout$Layout$centerContent
-										]),
-									$elm$html$Html$text('💀')),
-									A2(
-									$Orasund$elm_layout$Layout$el,
-									_List_Nil,
-									$elm$html$Html$text('Your journey ends at Deaths doorstep')),
-									$elm$html$Html$text(
-									A2(
-										$author$project$View$viewDistanceTraveled,
-										{reachedAfrica: args.reachedAfrica},
-										game)),
-									A2(
-									$Orasund$elm_layout$Layout$el,
-									_List_fromArray(
-										[$Orasund$elm_layout$Layout$contentCentered]),
-									A3(
-										$author$project$View$viewButton,
-										'Restart',
-										$elm$core$Maybe$Just(args.restart),
-										$elm$html$Html$text('Restart')))
-								])))) : ($elm$core$Dict$isEmpty(game.cards) ? $elm$core$Maybe$Just(
-					_Utils_Tuple2(
+								A2(
+								$Orasund$elm_layout$Layout$el,
+								_List_fromArray(
+									[
+										A2($elm$html$Html$Attributes$style, 'font-size', '80px'),
+										$Orasund$elm_layout$Layout$centerContent
+									]),
+								$elm$html$Html$text('💀')),
+								A2(
+								$Orasund$elm_layout$Layout$el,
+								_List_Nil,
+								$elm$html$Html$text('Your journey ends at Deaths doorstep')),
+								$elm$html$Html$text(
+								A2(
+									$author$project$View$viewDistanceTraveled,
+									{reachedAfrica: args.reachedAfrica},
+									game)),
+								A2(
+								$Orasund$elm_layout$Layout$el,
+								_List_fromArray(
+									[$Orasund$elm_layout$Layout$contentCentered]),
+								A3(
+									$author$project$View$viewButton,
+									'Restart',
+									$elm$core$Maybe$Just(args.restart),
+									$elm$html$Html$text('Restart')))
+							])))) : ($elm$core$Dict$isEmpty(game.cards) ? $elm$core$Maybe$Just(
+				_Utils_Tuple2(
+					_List_fromArray(
+						[
+							A2($elm$html$Html$Attributes$style, 'background-color', 'rgba(191,219,247,1)')
+						]),
+					A2(
+						$Orasund$elm_layout$Layout$column,
 						_List_fromArray(
 							[
-								A2($elm$html$Html$Attributes$style, 'background-color', 'rgba(191,219,247,1)')
+								$Orasund$elm_layout$Layout$spacing($author$project$Config$spacing)
 							]),
-						A2(
-							$Orasund$elm_layout$Layout$column,
-							_List_fromArray(
-								[
-									$Orasund$elm_layout$Layout$spacing($author$project$Config$spacing)
-								]),
-							_List_fromArray(
-								[
-									A2(
-									$Orasund$elm_layout$Layout$heading2,
+						_List_fromArray(
+							[
+								A2(
+								$Orasund$elm_layout$Layout$heading2,
+								_List_fromArray(
+									[
+										A2(
+										$elm$html$Html$Attributes$style,
+										'padding',
+										$elm$core$String$fromFloat($author$project$Config$spacing + 2) + 'px 0')
+									]),
+								$elm$html$Html$text('Where should your flock fly to?')),
+								A2(
+								$Orasund$elm_layout$Layout$el,
+								_List_fromArray(
+									[$Orasund$elm_layout$Layout$contentCentered]),
+								A2(
+									$Orasund$elm_card_game$Game$Area$toHtml,
 									_List_fromArray(
 										[
 											A2(
 											$elm$html$Html$Attributes$style,
-											'padding',
-											$elm$core$String$fromFloat($author$project$Config$spacing + 2) + 'px 0')
+											'height',
+											$elm$core$String$fromFloat($author$project$Config$cardHeight + 100) + 'px'),
+											A2(
+											$elm$html$Html$Attributes$style,
+											'width',
+											$elm$core$String$fromFloat(($author$project$Config$cardWidth * 2) + $author$project$Config$spacing) + 'px')
 										]),
-									$elm$html$Html$text('Where should your flock fly to?')),
-									A2(
-									$Orasund$elm_layout$Layout$el,
-									_List_fromArray(
-										[$Orasund$elm_layout$Layout$contentCentered]),
-									A2(
-										$Orasund$elm_card_game$Game$Area$toHtml,
+									_Utils_ap(
 										_List_fromArray(
 											[
 												A2(
-												$elm$html$Html$Attributes$style,
-												'height',
-												$elm$core$String$fromFloat($author$project$Config$cardHeight + 100) + 'px'),
+												$Orasund$elm_card_game$Game$Entity$move,
+												_Utils_Tuple2(
+													-150,
+													(-200) + (args.animationToggle ? 50 : 0)),
+												$Orasund$elm_card_game$Game$Entity$new(
+													A2(
+														$elm$core$Tuple$pair,
+														'cloud1',
+														function (attrs) {
+															return A2(
+																$Orasund$elm_layout$Layout$el,
+																_Utils_ap(
+																	_List_fromArray(
+																		[
+																			A2($elm$html$Html$Attributes$style, 'font-size', '100px')
+																		]),
+																	attrs),
+																$elm$html$Html$text('☁️'));
+														}))),
 												A2(
-												$elm$html$Html$Attributes$style,
-												'width',
-												$elm$core$String$fromFloat(($author$project$Config$cardWidth * 2) + $author$project$Config$spacing) + 'px')
+												$Orasund$elm_card_game$Game$Entity$move,
+												_Utils_Tuple2(
+													150 + $author$project$Config$cardWidth,
+													(-100) + (args.animationToggle ? 50 : 0)),
+												$Orasund$elm_card_game$Game$Entity$new(
+													A2(
+														$elm$core$Tuple$pair,
+														'cloud2',
+														function (attrs) {
+															return A2(
+																$Orasund$elm_layout$Layout$el,
+																_Utils_ap(
+																	_List_fromArray(
+																		[
+																			A2($elm$html$Html$Attributes$style, 'font-size', '100px')
+																		]),
+																	attrs),
+																$elm$html$Html$text('☁️'));
+														}))),
+												A2(
+												$Orasund$elm_card_game$Game$Entity$move,
+												_Utils_Tuple2(
+													-150,
+													100 + (args.animationToggle ? 0 : 50)),
+												$Orasund$elm_card_game$Game$Entity$new(
+													A2(
+														$elm$core$Tuple$pair,
+														'cloud3',
+														function (attrs) {
+															return A2(
+																$Orasund$elm_layout$Layout$el,
+																_Utils_ap(
+																	_List_fromArray(
+																		[
+																			A2($elm$html$Html$Attributes$style, 'font-size', '100px')
+																		]),
+																	attrs),
+																$elm$html$Html$text('☁️'));
+														})))
 											]),
-										_Utils_ap(
-											_List_fromArray(
-												[
-													A2(
-													$Orasund$elm_card_game$Game$Entity$move,
-													_Utils_Tuple2(
-														-150,
-														(-200) + (args.animationToggle ? 50 : 0)),
-													$Orasund$elm_card_game$Game$Entity$new(
+										A2(
+											$elm$core$List$indexedMap,
+											F2(
+												function (i, deck) {
+													return A2(
+														$Orasund$elm_card_game$Game$Entity$map,
+														$elm$core$Tuple$pair(
+															'deck_' + $elm$core$String$fromInt(i)),
 														A2(
-															$elm$core$Tuple$pair,
-															'cloud1',
-															function (attrs) {
-																return A2(
-																	$Orasund$elm_layout$Layout$el,
-																	_Utils_ap(
-																		_List_fromArray(
-																			[
-																				A2($elm$html$Html$Attributes$style, 'font-size', '100px')
-																			]),
-																		attrs),
-																	$elm$html$Html$text('☁️'));
-															}))),
-													A2(
-													$Orasund$elm_card_game$Game$Entity$move,
-													_Utils_Tuple2(
-														150 + $author$project$Config$cardWidth,
-														(-100) + (args.animationToggle ? 50 : 0)),
-													$Orasund$elm_card_game$Game$Entity$new(
-														A2(
-															$elm$core$Tuple$pair,
-															'cloud2',
-															function (attrs) {
-																return A2(
-																	$Orasund$elm_layout$Layout$el,
-																	_Utils_ap(
-																		_List_fromArray(
-																			[
-																				A2($elm$html$Html$Attributes$style, 'font-size', '100px')
-																			]),
-																		attrs),
-																	$elm$html$Html$text('☁️'));
-															}))),
-													A2(
-													$Orasund$elm_card_game$Game$Entity$move,
-													_Utils_Tuple2(
-														-150,
-														100 + (args.animationToggle ? 0 : 50)),
-													$Orasund$elm_card_game$Game$Entity$new(
-														A2(
-															$elm$core$Tuple$pair,
-															'cloud3',
-															function (attrs) {
-																return A2(
-																	$Orasund$elm_layout$Layout$el,
-																	_Utils_ap(
-																		_List_fromArray(
-																			[
-																				A2($elm$html$Html$Attributes$style, 'font-size', '100px')
-																			]),
-																		attrs),
-																	$elm$html$Html$text('☁️'));
-															})))
-												]),
-											A2(
-												$elm$core$List$indexedMap,
-												F2(
-													function (i, deck) {
-														return A2(
-															$Orasund$elm_card_game$Game$Entity$map,
-															$elm$core$Tuple$pair(
-																'deck_' + $elm$core$String$fromInt(i)),
+															$Orasund$elm_card_game$Game$Entity$move,
+															_Utils_Tuple2(i * ($author$project$Config$cardWidth + $author$project$Config$spacing), 0),
 															A2(
-																$Orasund$elm_card_game$Game$Entity$move,
-																_Utils_Tuple2(i * ($author$project$Config$cardWidth + $author$project$Config$spacing), 0),
+																$author$project$View$viewDeck,
+																$author$project$Deck$cards(deck),
 																A2(
-																	$author$project$View$viewDeck,
-																	$author$project$Deck$cards(deck),
-																	A2(
-																		$author$project$View$viewCardBack,
-																		$Orasund$elm_layout$Layout$asButton(
-																			{
-																				label: 'Select ' + ($author$project$Deck$name(deck) + 'Deck'),
-																				onPress: $elm$core$Maybe$Just(
-																					args.selectDeck(deck))
-																			}),
-																		deck))));
-													}),
-												args.selectableDecks)))),
-									A2(
-									$author$project$View$viewStats,
-									{reachedAfrica: args.reachedAfrica},
-									game)
-								])))) : $elm$core$Maybe$Nothing))));
+																	$author$project$View$viewCardBack,
+																	$Orasund$elm_layout$Layout$asButton(
+																		{
+																			label: 'Select ' + ($author$project$Deck$name(deck) + 'Deck'),
+																			onPress: $elm$core$Maybe$Just(
+																				args.selectDeck(deck))
+																		}),
+																	deck))));
+												}),
+											args.selectableDecks))))
+							])))) : $elm$core$Maybe$Nothing)));
 	});
-var $Orasund$elm_layout$Layout$alignAtEnd = A2($elm$html$Html$Attributes$style, 'align-items', 'flex-end');
 var $elm$core$Maybe$andThen = F2(
 	function (callback, maybeValue) {
 		if (maybeValue.$ === 'Just') {
@@ -8120,33 +8077,25 @@ var $elm$core$Maybe$andThen = F2(
 			return $elm$core$Maybe$Nothing;
 		}
 	});
+var $author$project$Config$foodEmoji = '\uD83E\uDEB1';
 var $author$project$Card$description = function (card) {
 	switch (card.$) {
 		case 'Wind':
 			return 'Fly to the next location.';
 		case 'Food':
-			return 'Add 1 Food';
+			return 'Add 1 ' + ($author$project$Config$foodEmoji + 'Food');
 		case 'Predator':
-			return 'Remove 1 Bird';
-		case 'BigPredator':
-			return 'Remove 2 Birds';
+			return 'Remove 1 ' + ($author$project$Config$birdEmoji + 'Bird');
 		case 'Friend':
-			return 'Add 1 Bird';
+			return 'Add 1 ' + ($author$project$Config$birdEmoji + 'Bird');
 		case 'LowTide':
-			return 'Add 2 Food';
-		case 'Eagle':
-			return 'Remove all food cards from the deck';
+			return 'Add 2 ' + ($author$project$Config$foodEmoji + 'Food');
+		case 'Competition':
+			return 'Remove all ' + ($author$project$Config$foodEmoji + ' food cards from the deck');
 		default:
-			return 'Remove 1 Food';
+			return 'Remove 1 ' + ($author$project$Config$foodEmoji + 'Food');
 	}
 };
-var $Orasund$elm_layout$Layout$fillPortion = function (n) {
-	return A2(
-		$elm$html$Html$Attributes$style,
-		'flex',
-		$elm$core$String$fromInt(n));
-};
-var $Orasund$elm_layout$Layout$fill = $Orasund$elm_layout$Layout$fillPortion(1);
 var $elm$core$List$maybeCons = F3(
 	function (f, mx, xs) {
 		var _v0 = f(mx);
@@ -8197,13 +8146,11 @@ var $author$project$Card$name = function (card) {
 			return 'Food';
 		case 'Predator':
 			return 'Predator';
-		case 'BigPredator':
-			return 'Big Predator';
 		case 'Friend':
 			return 'Friend';
 		case 'LowTide':
 			return 'Low Tide';
-		case 'Eagle':
+		case 'Competition':
 			return 'Competition';
 		default:
 			return 'Starving';
@@ -8246,7 +8193,6 @@ var $Orasund$elm_layout$Layout$row = function (attrs) {
 				]),
 			attrs));
 };
-var $Orasund$elm_layout$Layout$spaceBetween = A2($elm$html$Html$Attributes$style, 'justify-content', 'space-between');
 var $Orasund$elm_card_game$Game$Entity$flipTransformation = function (_float) {
 	return 'rotateY(' + ($elm$core$String$fromFloat(_float) + 'rad)');
 };
@@ -8354,7 +8300,7 @@ var $author$project$View$viewCard = F2(
 									$Orasund$elm_layout$Layout$el,
 									A2(
 										$elm$core$List$cons,
-										A2($elm$html$Html$Attributes$style, 'font-size', '100px'),
+										A2($elm$html$Html$Attributes$style, 'font-size', '120px'),
 										function () {
 											var _v0 = args.card;
 											switch (_v0.$) {
@@ -8425,8 +8371,7 @@ var $author$project$View$viewGame = F2(
 	function (args, game) {
 		return A2(
 			$Orasund$elm_layout$Layout$column,
-			_List_fromArray(
-				[$Orasund$elm_layout$Layout$spaceBetween, $Orasund$elm_layout$Layout$fill]),
+			$Orasund$elm_layout$Layout$centered,
 			_List_fromArray(
 				[
 					A2(
@@ -8444,7 +8389,8 @@ var $author$project$View$viewGame = F2(
 					$Orasund$elm_layout$Layout$column,
 					_List_fromArray(
 						[
-							$Orasund$elm_layout$Layout$spacing($author$project$Config$spacing)
+							$Orasund$elm_layout$Layout$spacing($author$project$Config$spacing),
+							$Orasund$elm_layout$Layout$contentCentered
 						]),
 					_List_fromArray(
 						[
@@ -8652,43 +8598,101 @@ var $author$project$View$viewGame = F2(
 														$elm$html$Html$text('for 1' + $author$project$Config$foodEmoji))
 													]))))
 									])))
-						])),
+						]))
+				]));
+	});
+var $Orasund$elm_layout$Layout$alignAtEnd = A2($elm$html$Html$Attributes$style, 'align-items', 'flex-end');
+var $Orasund$elm_card_game$Game$Entity$rotate = function (amount) {
+	return $Orasund$elm_card_game$Game$Entity$mapRotation(
+		$elm$core$Basics$add(amount));
+};
+var $author$project$View$viewStats = F2(
+	function (args, game) {
+		return A2(
+			$Orasund$elm_layout$Layout$row,
+			_List_fromArray(
+				[
+					$Orasund$elm_layout$Layout$spacing($author$project$Config$spacing)
+				]),
+			_List_fromArray(
+				[
 					A2(
-					$Orasund$elm_layout$Layout$row,
+					$Orasund$elm_layout$Layout$column,
 					_List_fromArray(
-						[$Orasund$elm_layout$Layout$spaceBetween]),
+						[
+							$Orasund$elm_layout$Layout$spacing($author$project$Config$spacing),
+							A2(
+							$elm$html$Html$Attributes$style,
+							'width',
+							$elm$core$String$fromFloat(($author$project$Config$cardWidth * 3) - 80) + 'px')
+						]),
 					_List_fromArray(
 						[
 							A2(
-							$author$project$View$viewStats,
-							{reachedAfrica: args.reachedAfrica},
-							game),
-							A2(
-							$Orasund$elm_layout$Layout$column,
+							$Orasund$elm_card_game$Game$Entity$toHtml,
 							_List_fromArray(
 								[
-									$Orasund$elm_layout$Layout$spacing($author$project$Config$spacing)
+									A2($elm$html$Html$Attributes$style, 'font-size', '2em'),
+									A2($elm$html$Html$Attributes$style, 'height', '30px')
 								]),
+							A2(
+								$Orasund$elm_card_game$Game$Entity$pileAbove,
+								$Orasund$elm_layout$Layout$none,
+								A2(
+									$elm$core$List$indexedMap,
+									F2(
+										function (i, content) {
+											return A2(
+												$Orasund$elm_card_game$Game$Entity$rotate,
+												args.animationToggle ? ((-$elm$core$Basics$pi) / 16) : ($elm$core$Basics$pi / 16),
+												A2(
+													$Orasund$elm_card_game$Game$Entity$move,
+													_Utils_Tuple2(
+														(game.food === 1) ? ($author$project$Config$cardWidth / 2) : ((i * ((($author$project$Config$cardWidth * 3) - 80) - 40)) / (game.food - 1)),
+														-5),
+													$Orasund$elm_card_game$Game$Entity$new(
+														function (attrs) {
+															return A2(
+																$Orasund$elm_layout$Layout$el,
+																attrs,
+																$elm$html$Html$text(content));
+														})));
+										}),
+									A2($elm$core$List$repeat, game.food, $author$project$Config$foodEmoji)))),
+							A2(
+							$Orasund$elm_layout$Layout$el,
+							_List_Nil,
+							$elm$html$Html$text(
+								A2(
+									$author$project$View$viewDistanceTraveled,
+									{reachedAfrica: args.reachedAfrica},
+									game)))
+						])),
+					A2(
+					$Orasund$elm_layout$Layout$column,
+					_List_fromArray(
+						[
+							$Orasund$elm_layout$Layout$spacing($author$project$Config$spacing)
+						]),
+					_List_fromArray(
+						[
+							A2(
+							$Orasund$elm_layout$Layout$el,
 							_List_fromArray(
-								[
-									A2(
-									$Orasund$elm_layout$Layout$el,
-									_List_fromArray(
-										[$Orasund$elm_layout$Layout$contentCentered, $Orasund$elm_layout$Layout$alignAtEnd]),
-									A3(
-										$author$project$View$viewButton,
-										'Restart',
-										$elm$core$Maybe$Just(args.restart),
-										$elm$html$Html$text('Restart'))),
-									function (label) {
-									return A3(
-										$author$project$View$viewButton,
-										label,
-										$elm$core$Maybe$Just(args.toggleMute),
-										$elm$html$Html$text(label));
-								}(
-									args.isMute ? '🔊 Unmute' : '🔇 Mute')
-								]))
+								[$Orasund$elm_layout$Layout$contentCentered, $Orasund$elm_layout$Layout$alignAtEnd]),
+							A3(
+								$author$project$View$viewButton,
+								'Restart',
+								$elm$core$Maybe$Just(args.restart),
+								$elm$html$Html$text('Restart'))),
+							function (label) {
+							return A3(
+								$author$project$View$viewButton,
+								label,
+								$elm$core$Maybe$Just(args.toggleMute),
+								$elm$html$Html$text(label));
+						}(
+							args.isMute ? '🔊 Unmute' : '🔇 Mute')
 						]))
 				]));
 	});
@@ -8739,21 +8743,45 @@ var $author$project$Main$view = function (model) {
 							A2($elm$html$Html$Attributes$style, 'width', '100%')
 						]),
 					$Orasund$elm_layout$Layout$centered),
-				A2(
-					$author$project$View$Overlay$toHtml,
-					{animationToggle: model.animationToggle, newGamePlus: $author$project$Main$NewGamePlus, reachedAfrica: model.reachedAfrica, restart: $author$project$Main$Restart, selectDeck: $author$project$Main$SelectDeck, selectableDecks: model.selectableDecks},
-					model.game),
-				A2(
-					$Orasund$elm_layout$Layout$el,
+				A3(
+					$elm$core$Basics$apR,
+					A2(
+						$elm$core$Maybe$map,
+						$elm$core$List$cons,
+						A2(
+							$author$project$View$Overlay$toHtml,
+							{animationToggle: model.animationToggle, newGamePlus: $author$project$Main$NewGamePlus, reachedAfrica: model.reachedAfrica, restart: $author$project$Main$Restart, selectDeck: $author$project$Main$SelectDeck, selectableDecks: model.selectableDecks},
+							model.game)),
+					$elm$core$Maybe$withDefault($elm$core$Basics$identity),
 					_List_fromArray(
 						[
-							A2($elm$html$Html$Attributes$style, 'width', '400px'),
-							A2($elm$html$Html$Attributes$style, 'height', '500px'),
-							A2($elm$html$Html$Attributes$style, 'border', '1px solid rgba(0,0,0,0.05)')
-						]),
+							A2(
+							$elm$core$Tuple$pair,
+							_List_fromArray(
+								[
+									A2(
+									$elm$html$Html$Attributes$style,
+									'bottom',
+									$elm$core$String$fromFloat($author$project$Config$spacing) + 'px'),
+									A2($elm$html$Html$Attributes$style, 'z-index', '1000')
+								]),
+							A2(
+								$author$project$View$viewStats,
+								{animationToggle: model.animationToggle, isMute: !model.volume, reachedAfrica: model.reachedAfrica, restart: $author$project$Main$Restart, toggleMute: $author$project$Main$ToggleMute},
+								model.game))
+						])),
+				A2(
+					$Orasund$elm_layout$Layout$el,
+					_Utils_ap(
+						$Orasund$elm_layout$Layout$centered,
+						_List_fromArray(
+							[
+								A2($elm$html$Html$Attributes$style, 'width', '400px'),
+								A2($elm$html$Html$Attributes$style, 'height', '500px')
+							])),
 					A2(
 						$author$project$View$viewGame,
-						{isMute: !model.volume, reachedAfrica: model.reachedAfrica, redraw: $author$project$Main$Redraw, restart: $author$project$Main$Restart, selectCard: $author$project$Main$SelectCard, toggleMute: $author$project$Main$ToggleMute},
+						{redraw: $author$project$Main$Redraw, selectCard: $author$project$Main$SelectCard},
 						model.game))),
 				$author$project$View$stylesheet
 			]),

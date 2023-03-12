@@ -12,7 +12,7 @@ import Layout
 import View
 
 
-toHtml : { restart : msg, newGamePlus : msg, reachedAfrica : Bool, selectDeck : Deck -> msg, selectableDecks : List Deck, animationToggle : Bool } -> Game -> List ( List (Attribute msg), Html msg )
+toHtml : { restart : msg, newGamePlus : msg, reachedAfrica : Bool, selectDeck : Deck -> msg, selectableDecks : List Deck, animationToggle : Bool } -> Game -> Maybe ( List (Attribute msg), Html msg )
 toHtml args game =
     (if Game.gameWon game then
         ( [ Html.Attributes.style "background-color" "rgba(158,228,147,0.5)" ]
@@ -127,7 +127,6 @@ toHtml args game =
                     , Html.Attributes.style "width" (String.fromFloat (Config.cardWidth * 2 + Config.spacing) ++ "px")
                     ]
                 |> Layout.el [ Layout.contentCentered ]
-          , View.viewStats { reachedAfrica = args.reachedAfrica } game
           ]
             |> Layout.column [ Layout.spacing Config.spacing ]
         )
@@ -138,21 +137,19 @@ toHtml args game =
     )
         |> Maybe.map
             (\( attrs, content ) ->
-                [ ( [ Html.Attributes.style "width" "100%"
-                    , Html.Attributes.style "height" "100%"
-                    ]
-                  , content
-                        |> Layout.el
-                            (Layout.centered
-                                ++ [ Html.Attributes.style "width" "100%"
-                                   , Html.Attributes.style "height" "100%"
-                                   , Html.Attributes.style "backdrop-filter" "blur(4px)"
-                                   , Html.Attributes.style "z-index" "100"
-                                   , Html.Attributes.style "position" "relative"
-                                   ]
-                                ++ attrs
-                            )
-                  )
-                ]
+                ( [ Html.Attributes.style "width" "100%"
+                  , Html.Attributes.style "height" "100%"
+                  ]
+                , content
+                    |> Layout.el
+                        (Layout.centered
+                            ++ [ Html.Attributes.style "width" "100%"
+                               , Html.Attributes.style "height" "100%"
+                               , Html.Attributes.style "backdrop-filter" "blur(4px)"
+                               , Html.Attributes.style "z-index" "100"
+                               , Html.Attributes.style "position" "relative"
+                               ]
+                            ++ attrs
+                        )
+                )
             )
-        |> Maybe.withDefault []
