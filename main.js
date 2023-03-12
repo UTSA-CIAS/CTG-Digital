@@ -7241,34 +7241,20 @@ var $author$project$Deck$emoji = function (deck) {
 var $author$project$Deck$primaryColor = function (deck) {
 	switch (deck.$) {
 		case 'Island':
-			return '#5C6784';
+			return '#70d6ff';
 		case 'Desert':
-			return '#FCBF49';
+			return '#ffdc5e';
 		case 'Valley':
-			return '#7A9E9F';
+			return '#a7c957';
 		case 'Savanna':
-			return '#e9afa3';
+			return '#ffbf81';
 		default:
 			return '#FFEEDD';
 	}
 };
-var $author$project$Deck$secondaryColor = function (deck) {
-	switch (deck.$) {
-		case 'Island':
-			return '#98C1D9';
-		case 'Desert':
-			return '#EAE2B7';
-		case 'Valley':
-			return '#B8D8D8';
-		case 'Savanna':
-			return '#f9dec9';
-		default:
-			return '#F8F7FF';
-	}
-};
+var $elm$core$String$toLower = _String_toLower;
 var $author$project$View$viewCardBack = F2(
 	function (a, deck) {
-		var secondaryColor = $author$project$Deck$secondaryColor(deck);
 		var primaryColor = $author$project$Deck$primaryColor(deck);
 		return $Orasund$elm_card_game$Game$Entity$new(
 			function (attrs) {
@@ -7282,7 +7268,11 @@ var $author$project$View$viewCardBack = F2(
 								'height',
 								$elm$core$String$fromFloat($author$project$Config$cardHeight) + 'px'),
 								A2($elm$html$Html$Attributes$style, 'background-color', primaryColor),
-								A2($elm$html$Html$Attributes$style, 'background-image', 'linear-gradient(135deg, ' + (secondaryColor + (' 25%, transparent 25%), linear-gradient(225deg,' + (secondaryColor + (' 25%, transparent 25%), linear-gradient(45deg, ' + (secondaryColor + (' 25%, transparent 25%), linear-gradient(315deg, ' + (secondaryColor + (' 25%, ' + (primaryColor + ' 25%)')))))))))),
+								A2(
+								$elm$html$Html$Attributes$style,
+								'background-image',
+								'url(assets/svg/back/' + ($elm$core$String$toLower(
+									$author$project$Deck$name(deck)) + '.svg)')),
 								A2($elm$html$Html$Attributes$style, 'background-position', '40px 0, 40px 0, 0 0, 0 0'),
 								A2($elm$html$Html$Attributes$style, 'background-size', '40px 40px'),
 								A2($elm$html$Html$Attributes$style, 'background-repeat', 'repeat')
@@ -7293,7 +7283,7 @@ var $author$project$View$viewCardBack = F2(
 						_List_fromArray(
 							[
 								A2($elm$html$Html$Attributes$style, 'font-size', '40px'),
-								A2($elm$html$Html$Attributes$style, 'background-color', secondaryColor),
+								A2($elm$html$Html$Attributes$style, 'background-color', primaryColor),
 								A2($elm$html$Html$Attributes$style, 'padding', '8px'),
 								A2($elm$html$Html$Attributes$style, 'border-radius', '100%')
 							]),
@@ -7821,7 +7811,6 @@ var $Orasund$elm_layout$Layout$row = function (attrs) {
 };
 var $author$project$Config$useSvgImages = true;
 var $elm$core$String$filter = _String_filter;
-var $elm$core$String$toLower = _String_toLower;
 var $author$project$View$viewSVG = function (card) {
 	return 'assets/svg/card/' + (A2(
 		$elm$core$String$filter,

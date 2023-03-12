@@ -39,38 +39,19 @@ primaryColor : Deck -> String
 primaryColor deck =
     case deck of
         Island ->
-            "#5C6784"
+            "#70d6ff"
 
         Desert ->
-            "#FCBF49"
+            "#ffdc5e"
 
         Valley ->
-            "#7A9E9F"
+            "#a7c957"
 
         Savanna ->
-            "#e9afa3"
+            "#ffbf81"
 
         Beach ->
             "#FFEEDD"
-
-
-secondaryColor : Deck -> String
-secondaryColor deck =
-    case deck of
-        Island ->
-            "#98C1D9"
-
-        Desert ->
-            "#EAE2B7"
-
-        Valley ->
-            "#B8D8D8"
-
-        Savanna ->
-            "#f9dec9"
-
-        Beach ->
-            "#F8F7FF"
 
 
 cards : Deck -> List Card

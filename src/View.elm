@@ -2,13 +2,13 @@ module View exposing (..)
 
 import Card exposing (Card, CardId)
 import Config
-import Deck exposing (Deck, primaryColor, secondaryColor)
+import Deck exposing (Deck)
 import Dict exposing (Dict)
 import Game exposing (Game)
 import Game.Area
 import Game.Card
 import Game.Entity exposing (Entity)
-import Html exposing (Attribute, Html, label, q)
+import Html exposing (Attribute, Html)
 import Html.Attributes
 import Layout
 
@@ -67,23 +67,22 @@ viewCardBack a deck =
     let
         primaryColor =
             Deck.primaryColor deck
-
-        secondaryColor =
-            Deck.secondaryColor deck
     in
     (\attrs ->
         Deck.emoji deck
             |> Html.text
             |> Layout.el
                 [ Html.Attributes.style "font-size" "40px"
-                , Html.Attributes.style "background-color" secondaryColor
+                , Html.Attributes.style "background-color" primaryColor
                 , Html.Attributes.style "padding" "8px"
                 , Html.Attributes.style "border-radius" "100%"
                 ]
             |> Game.Card.back
                 ([ Html.Attributes.style "height" (String.fromFloat Config.cardHeight ++ "px")
                  , Html.Attributes.style "background-color" primaryColor
-                 , Html.Attributes.style "background-image" ("linear-gradient(135deg, " ++ secondaryColor ++ " 25%, transparent 25%), linear-gradient(225deg," ++ secondaryColor ++ " 25%, transparent 25%), linear-gradient(45deg, " ++ secondaryColor ++ " 25%, transparent 25%), linear-gradient(315deg, " ++ secondaryColor ++ " 25%, " ++ primaryColor ++ " 25%)")
+                 , Html.Attributes.style "background-image" ("url(assets/svg/back/" ++ (Deck.name deck |> String.toLower) ++ ".svg)")
+
+                 --, Html.Attributes.style "background-image" ("linear-gradient(135deg, " ++ secondaryColor ++ " 25%, transparent 25%), linear-gradient(225deg," ++ secondaryColor ++ " 25%, transparent 25%), linear-gradient(45deg, " ++ secondaryColor ++ " 25%, transparent 25%), linear-gradient(315deg, " ++ secondaryColor ++ " 25%, " ++ primaryColor ++ " 25%)")
                  , Html.Attributes.style "background-position" "40px 0, 40px 0, 0 0, 0 0"
                  , Html.Attributes.style "background-size" "40px 40px"
                  , Html.Attributes.style "background-repeat" "repeat"

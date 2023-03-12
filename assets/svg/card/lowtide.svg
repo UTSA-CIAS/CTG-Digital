@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
     <path id="fuse" d="M40 30, A 10 10 0 0 0 15 40 A 40 40 0 0 1 15 70  " stroke-linecap="round" fill="none"
-        stroke="red" stroke-width="5" />
-    <path id="fuse" d="M50 60, 40 80  " stroke-linecap="round" fill="none" stroke="red" stroke-width="5" />
-    <path id="fuse" d="M60 60, 50 80  " stroke-linecap="round" fill="none" stroke="red" stroke-width="5" />
-    <path id="fuse" d="M70 60, 60 80  " stroke-linecap="round" fill="none" stroke="red" stroke-width="5" />
-    <path id="fuse" d="M50 45 A 40 40 0 0 1 90 100 " stroke-linecap="round" fill="none" stroke="red"
+        stroke="#bb3e03" stroke-width="5" />
+    <path id="fuse" d="M50 60, 40 80  " stroke-linecap="round" fill="none" stroke="#bb3e03" stroke-width="5" />
+    <path id="fuse" d="M60 60, 50 80  " stroke-linecap="round" fill="none" stroke="#bb3e03" stroke-width="5" />
+    <path id="fuse" d="M70 60, 60 80  " stroke-linecap="round" fill="none" stroke="#bb3e03" stroke-width="5" />
+    <path id="fuse" d="M50 45 A 40 40 0 0 1 90 100 " stroke-linecap="round" fill="none" stroke="#bb3e03"
         stroke-width="40" />
     <circle r="4" cx="45" cy="40" fill="black" />
     <path d="M80 0, 100 0, 100 100, 20 100" fill="rgba(0,0,0,0.1)" />
