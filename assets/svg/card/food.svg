@@ -1,6 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-    <path id="fuse" d="M40 45 A 40 40 0 0 1 80 100 " stroke-linecap="round" fill="none" stroke="gray"
-        stroke-width="40" />
+    <path id="fuse" d="M40 45 a 40 40 0 0 1 0 80 " stroke-linecap="round" fill="none" stroke="gray" stroke-width="40" />
     <circle r="4" cx="45" cy="40" fill="black" />
     <path d="M80 0, 100 0, 100 100, 20 100" fill="rgba(0,0,0,0.1)" />
 </svg>
