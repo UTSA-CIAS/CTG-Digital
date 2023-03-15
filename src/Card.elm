@@ -15,6 +15,7 @@ type Card
     | LowTide
     | Competition
     | Starving
+    | Rain
 
 
 asList : List Card
@@ -26,6 +27,7 @@ asList =
     , LowTide
     , Competition
     , Starving
+    , Rain
     ]
 
 
@@ -53,6 +55,9 @@ emoji card =
         Starving ->
             "😵\u{200D}💫"
 
+        Rain ->
+            "🌧"
+
 
 name : Card -> String
 name card =
@@ -78,6 +83,9 @@ name card =
         Starving ->
             "Starving"
 
+        Rain ->
+            "Rain"
+
 
 description : Card -> String
 description card =
@@ -98,10 +106,13 @@ description card =
             "Add 2 " ++ Config.foodEmoji
 
         Competition ->
-            "Remove all " ++ Config.foodEmoji ++ " from the deck"
+            "Remove all Food cards from the deck"
 
         Starving ->
             "Remove 1 " ++ Config.foodEmoji
+
+        Rain ->
+            "Remove all but one Wind cards from the deck"
 
 
 color : Card -> String
@@ -136,4 +147,7 @@ color card =
             red
 
         Starving ->
+            red
+
+        Rain ->
             red

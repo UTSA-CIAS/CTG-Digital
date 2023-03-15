@@ -10,6 +10,7 @@ type Action
     | AddBirdAndThen Action
     | LooseBirdAndThen Action
     | FilterDeck (Card -> Bool)
+    | RemoveCard Card
     | DrawCard
     | Shuffle
     | RemoveDeckAndThen Action
@@ -41,6 +42,9 @@ fromCard card =
 
         Starving ->
             [ IfEnoughFoodAndThen 1 [ AddFoodAndThen -1 DrawCard ] [ DrawCard ] ]
+
+        Rain ->
+            [ RemoveCard Wind, DrawCard ]
 
 
 chooseDeck : Deck -> List Action

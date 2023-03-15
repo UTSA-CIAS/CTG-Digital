@@ -9,11 +9,12 @@ type Deck
     | Valley
     | Savanna
     | Island
+    | Jungle
 
 
 asList : List Deck
 asList =
-    [ Beach, Desert, Valley, Savanna, Island ]
+    [ Beach, Desert, Valley, Savanna, Island, Jungle ]
 
 
 name : Deck -> String
@@ -34,6 +35,9 @@ name deck =
         Island ->
             "Island"
 
+        Jungle ->
+            "Jungle"
+
 
 primaryColor : Deck -> String
 primaryColor deck =
@@ -53,13 +57,17 @@ primaryColor deck =
         Beach ->
             "#FFEEDD"
 
+        Jungle ->
+            --todo: change
+            "#a7c957"
+
 
 cards : Deck -> List Card
 cards deck =
     case deck of
         Beach ->
             [ List.repeat 2 Card.Wind
-            , List.repeat 1 Card.Food
+            , List.repeat 1 Card.Rain
             , List.repeat 5 Card.Predator
             , List.repeat 2 Card.LowTide
             ]
@@ -97,6 +105,14 @@ cards deck =
             ]
                 |> List.concat
 
+        Jungle ->
+            [ List.repeat 3 Card.Wind
+            , List.repeat 2 Card.Rain
+            , List.repeat 2 Card.Food
+            , List.repeat 3 Card.Predator
+            ]
+                |> List.concat
+
 
 emoji : Deck -> String
 emoji deck =
@@ -115,3 +131,6 @@ emoji deck =
 
         Island ->
             "🐬"
+
+        Jungle ->
+            "🦜"

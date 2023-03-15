@@ -202,6 +202,22 @@ applyAction action game =
             )
                 |> Random.constant
 
+        RemoveCard card ->
+            ( { game
+                | deck =
+                    game.deck
+                        |> List.filter (\cardId -> Dict.get cardId game.cards == Just card)
+                        |> List.head
+                        |> Maybe.map
+                            (\cardId ->
+                                game.deck |> List.filter ((/=) cardId)
+                            )
+                        |> Maybe.withDefault game.deck
+              }
+            , []
+            )
+                |> Random.constant
+
 
 getCardsFrom : Game -> List CardId -> List ( CardId, Card )
 getCardsFrom game list =
