@@ -112,7 +112,7 @@ description card =
             "Remove 1 " ++ Config.foodEmoji
 
         Rain ->
-            "Remove all but one Wind cards from the deck"
+            "Remove one Wind cards from the deck"
 
 
 color : Card -> String

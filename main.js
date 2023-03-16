@@ -5896,9 +5896,13 @@ var $author$project$Action$IfEnoughFoodAndThen = F3(
 var $author$project$Action$LooseBirdAndThen = function (a) {
 	return {$: 'LooseBirdAndThen', a: a};
 };
+var $author$project$Action$RemoveCard = function (a) {
+	return {$: 'RemoveCard', a: a};
+};
 var $author$project$Action$RemoveDeckAndThen = function (a) {
 	return {$: 'RemoveDeckAndThen', a: a};
 };
+var $author$project$Card$Wind = {$: 'Wind'};
 var $elm$core$Basics$neq = _Utils_notEqual;
 var $author$project$Action$fromCard = function (card) {
 	switch (card.$) {
@@ -5934,7 +5938,7 @@ var $author$project$Action$fromCard = function (card) {
 					$elm$core$Basics$neq($author$project$Card$Food)),
 					$author$project$Action$DrawCard
 				]);
-		default:
+		case 'Starving':
 			return _List_fromArray(
 				[
 					A3(
@@ -5946,6 +5950,12 @@ var $author$project$Action$fromCard = function (card) {
 						]),
 					_List_fromArray(
 						[$author$project$Action$DrawCard]))
+				]);
+		default:
+			return _List_fromArray(
+				[
+					$author$project$Action$RemoveCard($author$project$Card$Wind),
+					$author$project$Action$DrawCard
 				]);
 	}
 };
@@ -6018,16 +6028,17 @@ var $author$project$Event$TakeOff = {$: 'TakeOff'};
 var $author$project$Event$Win = {$: 'Win'};
 var $author$project$Deck$Desert = {$: 'Desert'};
 var $author$project$Deck$Island = {$: 'Island'};
+var $author$project$Deck$Jungle = {$: 'Jungle'};
 var $author$project$Deck$Savanna = {$: 'Savanna'};
 var $author$project$Deck$Valley = {$: 'Valley'};
 var $author$project$Deck$asList = _List_fromArray(
-	[$author$project$Deck$Beach, $author$project$Deck$Desert, $author$project$Deck$Valley, $author$project$Deck$Savanna, $author$project$Deck$Island]);
+	[$author$project$Deck$Beach, $author$project$Deck$Desert, $author$project$Deck$Valley, $author$project$Deck$Savanna, $author$project$Deck$Island, $author$project$Deck$Jungle]);
 var $author$project$Card$Competition = {$: 'Competition'};
 var $author$project$Card$Friend = {$: 'Friend'};
 var $author$project$Card$LowTide = {$: 'LowTide'};
 var $author$project$Card$Predator = {$: 'Predator'};
+var $author$project$Card$Rain = {$: 'Rain'};
 var $author$project$Card$Starving = {$: 'Starving'};
-var $author$project$Card$Wind = {$: 'Wind'};
 var $elm$core$List$append = F2(
 	function (xs, ys) {
 		if (!ys.b) {
@@ -6067,7 +6078,7 @@ var $author$project$Deck$cards = function (deck) {
 				_List_fromArray(
 					[
 						A2($elm$core$List$repeat, 2, $author$project$Card$Wind),
-						A2($elm$core$List$repeat, 1, $author$project$Card$Food),
+						A2($elm$core$List$repeat, 1, $author$project$Card$Rain),
 						A2($elm$core$List$repeat, 5, $author$project$Card$Predator),
 						A2($elm$core$List$repeat, 2, $author$project$Card$LowTide)
 					]));
@@ -6098,7 +6109,7 @@ var $author$project$Deck$cards = function (deck) {
 						A2($elm$core$List$repeat, 5, $author$project$Card$Predator),
 						A2($elm$core$List$repeat, 1, $author$project$Card$Friend)
 					]));
-		default:
+		case 'Island':
 			return $elm$core$List$concat(
 				_List_fromArray(
 					[
@@ -6106,6 +6117,15 @@ var $author$project$Deck$cards = function (deck) {
 						A2($elm$core$List$repeat, 3, $author$project$Card$Starving),
 						A2($elm$core$List$repeat, 3, $author$project$Card$LowTide),
 						A2($elm$core$List$repeat, 2, $author$project$Card$Predator)
+					]));
+		default:
+			return $elm$core$List$concat(
+				_List_fromArray(
+					[
+						A2($elm$core$List$repeat, 3, $author$project$Card$Wind),
+						A2($elm$core$List$repeat, 2, $author$project$Card$Rain),
+						A2($elm$core$List$repeat, 2, $author$project$Card$Food),
+						A2($elm$core$List$repeat, 3, $author$project$Card$Predator)
 					]));
 	}
 };
@@ -6160,6 +6180,15 @@ var $author$project$Game$gameWon = function (game) {
 	return game.remainingRests <= 0;
 };
 var $elm$core$Basics$ge = _Utils_ge;
+var $elm$core$List$head = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return $elm$core$Maybe$Just(x);
+	} else {
+		return $elm$core$Maybe$Nothing;
+	}
+};
 var $elm$core$Tuple$pair = F2(
 	function (a, b) {
 		return _Utils_Tuple2(a, b);
@@ -6423,7 +6452,7 @@ var $author$project$Game$applyAction = F2(
 					return $elm$random$Random$constant(
 						_Utils_Tuple2(game, _List_Nil));
 				}
-			default:
+			case 'FilterDeck':
 				var fun = action.a;
 				return $elm$random$Random$constant(
 					_Utils_Tuple2(
@@ -6442,6 +6471,35 @@ var $author$project$Game$applyAction = F2(
 												A2($elm$core$Dict$get, cardId, game.cards)));
 									},
 									game.deck)
+							}),
+						_List_Nil));
+			default:
+				var card = action.a;
+				return $elm$random$Random$constant(
+					_Utils_Tuple2(
+						_Utils_update(
+							game,
+							{
+								deck: A2(
+									$elm$core$Maybe$withDefault,
+									game.deck,
+									A2(
+										$elm$core$Maybe$map,
+										function (cardId) {
+											return A2(
+												$elm$core$List$filter,
+												$elm$core$Basics$neq(cardId),
+												game.deck);
+										},
+										$elm$core$List$head(
+											A2(
+												$elm$core$List$filter,
+												function (cardId) {
+													return _Utils_eq(
+														A2($elm$core$Dict$get, cardId, game.cards),
+														$elm$core$Maybe$Just(card));
+												},
+												game.deck))))
 							}),
 						_List_Nil));
 		}
@@ -7130,8 +7188,10 @@ var $author$project$Deck$name = function (deck) {
 			return 'Valley';
 		case 'Savanna':
 			return 'Savanna';
-		default:
+		case 'Island':
 			return 'Island';
+		default:
+			return 'Jungle';
 	}
 };
 var $Orasund$elm_layout$Layout$spacing = function (n) {
@@ -7234,8 +7294,10 @@ var $author$project$Deck$emoji = function (deck) {
 			return '🐐';
 		case 'Savanna':
 			return '🦒';
-		default:
+		case 'Island':
 			return '🐬';
+		default:
+			return '🦜';
 	}
 };
 var $author$project$Deck$primaryColor = function (deck) {
@@ -7248,8 +7310,10 @@ var $author$project$Deck$primaryColor = function (deck) {
 			return '#a7c957';
 		case 'Savanna':
 			return '#ffbf81';
-		default:
+		case 'Beach':
 			return '#FFEEDD';
+		default:
+			return '#FBDCE2';
 	}
 };
 var $elm$core$String$toLower = _String_toLower;
@@ -7326,7 +7390,7 @@ var $Orasund$elm_card_game$Game$Entity$pileAbove = F2(
 			});
 	});
 var $author$project$Card$asList = _List_fromArray(
-	[$author$project$Card$Wind, $author$project$Card$Food, $author$project$Card$Predator, $author$project$Card$Friend, $author$project$Card$LowTide, $author$project$Card$Competition, $author$project$Card$Starving]);
+	[$author$project$Card$Wind, $author$project$Card$Food, $author$project$Card$Predator, $author$project$Card$Friend, $author$project$Card$LowTide, $author$project$Card$Competition, $author$project$Card$Starving, $author$project$Card$Rain]);
 var $author$project$Card$color = function (card) {
 	var red = '#f08080';
 	var green = '#57cc99';
@@ -7343,6 +7407,8 @@ var $author$project$Card$color = function (card) {
 		case 'LowTide':
 			return green;
 		case 'Competition':
+			return red;
+		case 'Starving':
 			return red;
 		default:
 			return red;
@@ -7362,8 +7428,10 @@ var $author$project$Card$emoji = function (card) {
 			return '🦐';
 		case 'Competition':
 			return '🦅';
-		default:
+		case 'Starving':
 			return '😵\u200D💫';
+		default:
+			return '🌧';
 	}
 };
 var $Orasund$elm_card_game$Game$Card$backgroundImage = function (src) {
@@ -7794,8 +7862,10 @@ var $author$project$Card$name = function (card) {
 			return 'Low Tide';
 		case 'Competition':
 			return 'Competition';
-		default:
+		case 'Starving':
 			return 'Starving';
+		default:
+			return 'Rain';
 	}
 };
 var $Orasund$elm_layout$Layout$row = function (attrs) {
@@ -8253,9 +8323,11 @@ var $author$project$Card$description = function (card) {
 		case 'LowTide':
 			return 'Add 2 ' + $author$project$Config$foodEmoji;
 		case 'Competition':
-			return 'Remove all ' + ($author$project$Config$foodEmoji + ' from the deck');
-		default:
+			return 'Remove all Food cards from the deck';
+		case 'Starving':
 			return 'Remove 1 ' + $author$project$Config$foodEmoji;
+		default:
+			return 'Remove one Wind cards from the deck';
 	}
 };
 var $elm$core$List$maybeCons = F3(

@@ -58,8 +58,7 @@ primaryColor deck =
             "#FFEEDD"
 
         Jungle ->
-            --todo: change
-            "#a7c957"
+            "#FBDCE2"
 
 
 cards : Deck -> List Card
