@@ -17,6 +17,10 @@ viewSVG : Card -> String
 viewSVG card =
     "assets/svg/card/" ++ (Card.name card |> String.toLower |> String.filter Char.isAlpha) ++ ".svg"
 
+viewPNG: Card -> String
+viewPNG card =
+    "https://cdn.getshifter.co/fd026a43ee1b7b095c768a9039a2a236c0a0d590/uploads/2022/04/" ++ (Card.name card |> String.replace " " "-") ++ ".png"
+
 
 viewCard : List (Html.Attribute msg) -> { faceUp : Bool, card : Card, deck : Deck } -> Game.Entity.Entity (List (Html.Attribute msg) -> Html msg)
 viewCard attributes args =
@@ -197,7 +201,7 @@ viewDeckInfo attrs label cards =
 
 viewGame : { selectCard : CardId -> msg, redraw : msg } -> Game -> Html msg
 viewGame args game =
-    [ [ Html.text "Waiting for Wind" |> Layout.heading1 [ Layout.contentCentered ]
+    [ [ Html.text "Cyber Threat Guardian" |> Layout.heading1 [ Layout.contentCentered ]
       ]
         |> Layout.column []
     , [ [ [ game.ground

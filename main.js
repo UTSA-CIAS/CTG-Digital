@@ -2780,7 +2780,9 @@ function _VirtualDom_render(vNode, eventNode)
 
 	if (tag === 0)
 	{
-		return _VirtualDom_doc.createTextNode(vNode.a);
+		var n = _VirtualDom_doc.createTextNode(vNode.a);
+		n.created_by_elm = true;
+		return n
 	}
 
 	if (tag === 4)
@@ -2815,6 +2817,7 @@ function _VirtualDom_render(vNode, eventNode)
 	var domNode = vNode.f
 		? _VirtualDom_doc.createElementNS(vNode.f, vNode.c)
 		: _VirtualDom_doc.createElement(vNode.c);
+	domNode.created_by_elm = true;
 
 	if (_VirtualDom_divertHrefToApp && vNode.c == 'a')
 	{
@@ -3674,14 +3677,57 @@ function _VirtualDom_addDomNodesHelp(domNode, vNode, patches, i, low, high, even
 
 	var vKids = vNode.e;
 	var childNodes = domNode.childNodes;
-	for (var j = 0; j < vKids.length; j++)
+	for (var j = 0, k = 0; j < Math.max(vKids.length, childNodes.length); j++, k++)
 	{
 		low++;
 		var vKid = tag === 1 ? vKids[j] : vKids[j].b;
 		var nextLow = low + (vKid.b || 0);
+
+		// 1. if unknown nodes have been inserted
+		if(childNodes.length > vKids.length)
+		{
+			// skip them
+			while(!childNodes[k].created_by_elm)
+			{
+				//console.log("Elm Virtual Dom: skipping non-Elm element", childNodes[k])
+				k++
+			}
+		}
+		// 2. if existing node has been removed
+		if(childNodes.length < vKids.length)
+		{
+			if(childNodes[k])
+			{
+				// replace the node using the old vdom
+				console.log("Elm Virtual Dom:", vKids.length - childNodes.length, "less children than expected, overwriting", childNodes[k], "with", vKids[j].c, "containing", vKids[j].e  )
+				_VirtualDom_applyPatchRedraw(childNodes[k], vKids[j], eventNode)
+			}
+			else
+			{
+				console.log("Elm Virtual Dom:", vKids.length - childNodes.length, "less children than expected, inserting", vKids[j].c, "containing", vKids[j].e  )
+				domNode.appendChild(_VirtualDom_render(vKids[j], eventNode));
+			}
+		}
+		// 3. if existing node has been replaced with unknown node
+		if(childNodes.length === vKids.length)
+		{
+			if(!childNodes[k].created_by_elm)
+			{
+				// replace the node using the old vdom
+				console.log("Elm Virtual Dom: in", eventNode, "the child", childNodes[k], "was not created by elm, but an elm element was expected there. Overwriting with", vKids[j])
+				_VirtualDom_applyPatchRedraw(childNodes[k], vKids[j], eventNode)
+			}
+		}
+		// 4. this is needed for some edge cases
+		if(vKids[j].$ === 1 && childNodes[k] && (childNodes[k].tagName || "").toLowerCase() !== vKids[j].c)
+		{
+			console.log("Elm Virtual Dom: Tag name does not match for", childNodes[k], ", overwriting with", vKids[j])
+			_VirtualDom_applyPatchRedraw(childNodes[k], vKids[j], eventNode)
+		}
+
 		if (low <= index && index <= nextLow)
 		{
-			i = _VirtualDom_addDomNodesHelp(childNodes[j], vKid, patches, i, low, nextLow, eventNode);
+			i = _VirtualDom_addDomNodesHelp(childNodes[k], vKid, patches, i, low, nextLow, eventNode);
 			if (!(patch = patches[i]) || (index = patch.r) > high)
 			{
 				return i;
@@ -3754,6 +3800,26 @@ function _VirtualDom_applyPatch(domNode, patch)
 
 		case 6:
 			var data = patch.s;
+			
+			// patch for extension
+			if(domNode.childNodes.length !== data.i + data.v)
+			{
+				console.log("Elm Virtual Dom: using alternative logic for an extension")
+				var removed = 0;
+				var index = domNode.childNodes.length - 1;
+				while (removed < data.i)
+				{
+					var childNode = domNode.childNodes[index];
+					if(childNode.created_by_elm)
+					{
+						domNode.removeChild(childNode);
+						removed++;
+					}
+					index--;
+				}
+				return domNode;
+			}
+
 			for (var i = 0; i < data.i; i++)
 			{
 				domNode.removeChild(domNode.childNodes[data.v]);
@@ -3871,6 +3937,7 @@ function _VirtualDom_applyPatchReorderEndInsertsHelp(endInserts, patch)
 
 function _VirtualDom_virtualize(node)
 {
+	node.created_by_elm = true;
 	// TEXT NODES
 
 	if (node.nodeType === 3)
@@ -4029,8 +4096,15 @@ function _Browser_makeAnimator(model, draw)
 	{
 		state = state === 1
 			? 0
-			: ( _Browser_requestAnimationFrame(updateIfNeeded), draw(model), 1 );
+			: ( _Browser_requestAnimationFrame(updateIfNeeded), flipDraw(model), 1 );
 	}
+	
+	function flipDraw(modelIn)
+	{   if (window.flipping) {window.flipping.read()};
+	    draw(modelIn);
+	    if (window.flipping) {window.afterDraw()};
+	}
+
 
 	return function(nextModel, isSync)
 	{
@@ -4955,8 +5029,15 @@ var $elm$core$Basics$identity = function (x) {
 var $elm$browser$Browser$Dom$NotFound = function (a) {
 	return {$: 'NotFound', a: a};
 };
+var $elm$url$Url$Dat = {$: 'Dat'};
+var $elm$url$Url$File = {$: 'File'};
+var $elm$url$Url$File2 = {$: 'File2'};
+var $elm$url$Url$Ftp = {$: 'Ftp'};
 var $elm$url$Url$Http = {$: 'Http'};
 var $elm$url$Url$Https = {$: 'Https'};
+var $elm$url$Url$Hyper = {$: 'Hyper'};
+var $elm$url$Url$Ipfs = {$: 'Ipfs'};
+var $elm$url$Url$Ipns = {$: 'Ipns'};
 var $elm$url$Url$Url = F6(
 	function (protocol, host, port_, path, query, fragment) {
 		return {fragment: fragment, host: host, path: path, port_: port_, protocol: protocol, query: query};
@@ -4996,7 +5077,8 @@ var $elm$url$Url$chompBeforePath = F5(
 					var _v1 = $elm$core$String$toInt(
 						A2($elm$core$String$dropLeft, i + 1, str));
 					if (_v1.$ === 'Nothing') {
-						return $elm$core$Maybe$Nothing;
+						return $elm$core$Maybe$Just(
+							A6($elm$url$Url$Url, protocol, str, $elm$core$Maybe$Nothing, path, params, frag));
 					} else {
 						var port_ = _v1;
 						return $elm$core$Maybe$Just(
@@ -5010,7 +5092,29 @@ var $elm$url$Url$chompBeforePath = F5(
 								frag));
 					}
 				} else {
-					return $elm$core$Maybe$Nothing;
+					if (!_v0.b.b.b) {
+						var _v2 = _v0.b;
+						var i = _v2.a;
+						var _v3 = $elm$core$String$toInt(
+							A2($elm$core$String$dropLeft, i + 1, str));
+						if (_v3.$ === 'Nothing') {
+							return $elm$core$Maybe$Just(
+								A6($elm$url$Url$Url, protocol, str, $elm$core$Maybe$Nothing, path, params, frag));
+						} else {
+							var port_ = _v3;
+							return $elm$core$Maybe$Just(
+								A6(
+									$elm$url$Url$Url,
+									protocol,
+									A2($elm$core$String$left, i, str),
+									port_,
+									path,
+									params,
+									frag));
+						}
+					} else {
+						return $elm$core$Maybe$Nothing;
+					}
 				}
 			}
 		}
@@ -5082,7 +5186,28 @@ var $elm$url$Url$fromString = function (str) {
 		A2($elm$core$String$dropLeft, 7, str)) : (A2($elm$core$String$startsWith, 'https://', str) ? A2(
 		$elm$url$Url$chompAfterProtocol,
 		$elm$url$Url$Https,
-		A2($elm$core$String$dropLeft, 8, str)) : $elm$core$Maybe$Nothing);
+		A2($elm$core$String$dropLeft, 8, str)) : (A2($elm$core$String$startsWith, 'file:///', str) ? A2(
+		$elm$url$Url$chompAfterProtocol,
+		$elm$url$Url$File2,
+		A2($elm$core$String$dropLeft, 8, str)) : (A2($elm$core$String$startsWith, 'file://', str) ? A2(
+		$elm$url$Url$chompAfterProtocol,
+		$elm$url$Url$File,
+		A2($elm$core$String$dropLeft, 7, str)) : (A2($elm$core$String$startsWith, 'ipfs://', str) ? A2(
+		$elm$url$Url$chompAfterProtocol,
+		$elm$url$Url$Ipfs,
+		A2($elm$core$String$dropLeft, 7, str)) : (A2($elm$core$String$startsWith, 'ipns://', str) ? A2(
+		$elm$url$Url$chompAfterProtocol,
+		$elm$url$Url$Ipns,
+		A2($elm$core$String$dropLeft, 7, str)) : (A2($elm$core$String$startsWith, 'dat://', str) ? A2(
+		$elm$url$Url$chompAfterProtocol,
+		$elm$url$Url$Dat,
+		A2($elm$core$String$dropLeft, 6, str)) : (A2($elm$core$String$startsWith, 'ftp://', str) ? A2(
+		$elm$url$Url$chompAfterProtocol,
+		$elm$url$Url$Ftp,
+		A2($elm$core$String$dropLeft, 6, str)) : (A2($elm$core$String$startsWith, 'hyper://', str) ? A2(
+		$elm$url$Url$chompAfterProtocol,
+		$elm$url$Url$Hyper,
+		A2($elm$core$String$dropLeft, 8, str)) : $elm$core$Maybe$Nothing))))))));
 };
 var $elm$core$Basics$never = function (_v0) {
 	never:
@@ -5951,12 +6076,15 @@ var $author$project$Action$fromCard = function (card) {
 					_List_fromArray(
 						[$author$project$Action$DrawCard]))
 				]);
-		default:
+		case 'Rain':
 			return _List_fromArray(
 				[
 					$author$project$Action$RemoveCard($author$project$Card$Wind),
 					$author$project$Action$DrawCard
 				]);
+		default:
+			return _List_fromArray(
+				[$author$project$Action$DrawCard]);
 	}
 };
 var $elm$json$Json$Encode$list = F2(
@@ -6747,7 +6875,6 @@ var $author$project$Main$update = F2(
 		}
 	});
 var $author$project$Main$NewGamePlus = {$: 'NewGamePlus'};
-var $author$project$Main$PlayMusic = {$: 'PlayMusic'};
 var $author$project$Main$Redraw = {$: 'Redraw'};
 var $author$project$Main$Restart = {$: 'Restart'};
 var $author$project$Main$SelectCard = function (a) {
@@ -6790,7 +6917,7 @@ var $author$project$View$stylesheet = A3(
 	_List_Nil,
 	_List_fromArray(
 		[
-			$elm$html$Html$text('\r\n@font-face {\r\n    font-family: "NotoEmoji";\r\n    src: url("assets/NotoEmoji.ttf");\r\n  }\r\n@font-face {\r\n    font-family: "NotoEmojiColor";\r\n    src: url("assets/NotoEmojiColor.ttf");\r\n  }\r\n:root {\r\n    --back-color1: #e5e5f7;\r\n    --back-color2: #444cf7;\r\n}\r\n\r\n:root,body {\r\n    height:100%;\r\n    background-color:#f4f3ee;\r\n    font-family: serif,"NotoEmojiColor";\r\n    margin: 0px\r\n}\r\n\r\nbutton {\r\n    font-family: serif,"NotoEmojiColor";\r\n}\r\n\r\nbutton:hover {\r\n    filter: brightness(0.95)\r\n}\r\n\r\nbutton:focus {\r\n    filter: brightness(0.90)\r\n}\r\n\r\nbutton:active {\r\n    filter: brightness(0.7)\r\n}\r\n')
+			$elm$html$Html$text('\n@font-face {\n    font-family: "NotoEmoji";\n    src: url("assets/NotoEmoji.ttf");\n  }\n@font-face {\n    font-family: "NotoEmojiColor";\n    src: url("assets/NotoEmojiColor.ttf");\n  }\n:root {\n    --back-color1: #e5e5f7;\n    --back-color2: #444cf7;\n}\n\n:root,body {\n    height:100%;\n    background-color:#f4f3ee;\n    font-family: serif,"NotoEmojiColor";\n    margin: 0px\n}\n\nbutton {\n    font-family: serif,"NotoEmojiColor";\n}\n\nbutton:hover {\n    filter: brightness(0.95)\n}\n\nbutton:focus {\n    filter: brightness(0.90)\n}\n\nbutton:active {\n    filter: brightness(0.7)\n}\n')
 		]));
 var $elm$virtual_dom$VirtualDom$attribute = F2(
 	function (key, value) {
@@ -6838,8 +6965,31 @@ var $Orasund$elm_layout$Layout$asButton = function (args) {
 				},
 				args.onPress)));
 };
-var $author$project$Config$birdEmoji = '🐦';
+var $author$project$Config$cardHeight = 300;
+var $author$project$Config$cardWidth = ($author$project$Config$cardHeight * 2) / 3;
 var $Orasund$elm_layout$Layout$centerContent = A2($elm$html$Html$Attributes$style, 'justify-content', 'center');
+var $Orasund$elm_layout$Layout$column = function (attrs) {
+	return $elm$html$Html$div(
+		_Utils_ap(
+			_List_fromArray(
+				[
+					A2($elm$html$Html$Attributes$style, 'display', 'flex'),
+					A2($elm$html$Html$Attributes$style, 'flex-direction', 'column')
+				]),
+			attrs));
+};
+var $elm$html$Html$h2 = _VirtualDom_node('h2');
+var $Orasund$elm_layout$Layout$heading2 = F2(
+	function (attrs, content) {
+		return A2(
+			$elm$html$Html$h2,
+			A2(
+				$elm$core$List$cons,
+				A2($elm$html$Html$Attributes$style, 'display', 'flex'),
+				attrs),
+			_List_fromArray(
+				[content]));
+	});
 var $elm$core$Dict$isEmpty = function (dict) {
 	if (dict.$ === 'RBEmpty_elm_builtin') {
 		return true;
@@ -6847,6 +6997,16 @@ var $elm$core$Dict$isEmpty = function (dict) {
 		return false;
 	}
 };
+var $Orasund$elm_card_game$Game$Entity$map = F2(
+	function (fun, i) {
+		return {
+			content: fun(i.content),
+			customTransformations: i.customTransformations,
+			position: i.position,
+			rotation: i.rotation,
+			zIndex: i.zIndex
+		};
+	});
 var $elm$core$Tuple$mapBoth = F3(
 	function (funcA, funcB, _v0) {
 		var x = _v0.a;
@@ -6863,53 +7023,6 @@ var $Orasund$elm_card_game$Game$Entity$mapPosition = F2(
 				position: fun(entity.position)
 			});
 	});
-var $Orasund$elm_card_game$Game$Area$mapPosition = function (fun) {
-	return $elm$core$List$indexedMap(
-		F2(
-			function (i, entity) {
-				return A2(
-					$Orasund$elm_card_game$Game$Entity$mapPosition,
-					A2(fun, i, entity.content),
-					entity);
-			}));
-};
-var $Orasund$elm_card_game$Game$Entity$mapRotation = F2(
-	function (fun, entity) {
-		return _Utils_update(
-			entity,
-			{
-				rotation: fun(entity.rotation)
-			});
-	});
-var $Orasund$elm_card_game$Game$Area$mapRotation = function (fun) {
-	return $elm$core$List$indexedMap(
-		F2(
-			function (i, entity) {
-				return A2(
-					$Orasund$elm_card_game$Game$Entity$mapRotation,
-					A2(fun, i, entity.content),
-					entity);
-			}));
-};
-var $Orasund$elm_card_game$Game$Entity$mapZIndex = F2(
-	function (fun, entity) {
-		return _Utils_update(
-			entity,
-			{
-				zIndex: fun(entity.zIndex)
-			});
-	});
-var $Orasund$elm_card_game$Game$Area$mapZIndex = function (fun) {
-	return $elm$core$List$indexedMap(
-		F2(
-			function (i, entity) {
-				return A2(
-					$Orasund$elm_card_game$Game$Entity$mapZIndex,
-					A2(fun, i, entity.content),
-					entity);
-			}));
-};
-var $elm$core$Basics$modBy = _Basics_modBy;
 var $Orasund$elm_card_game$Game$Entity$move = function (_v0) {
 	var x = _v0.a;
 	var y = _v0.b;
@@ -6919,16 +7032,22 @@ var $Orasund$elm_card_game$Game$Entity$move = function (_v0) {
 			$elm$core$Basics$add(x),
 			$elm$core$Basics$add(y)));
 };
-var $Orasund$elm_card_game$Game$Entity$map = F2(
-	function (fun, i) {
-		return {
-			content: fun(i.content),
-			customTransformations: i.customTransformations,
-			position: i.position,
-			rotation: i.rotation,
-			zIndex: i.zIndex
-		};
-	});
+var $author$project$Deck$name = function (deck) {
+	switch (deck.$) {
+		case 'Beach':
+			return 'Beach';
+		case 'Desert':
+			return 'Desert';
+		case 'Valley':
+			return 'Valley';
+		case 'Savanna':
+			return 'Savanna';
+		case 'Island':
+			return 'Island';
+		default:
+			return 'Jungle';
+	}
+};
 var $Orasund$elm_card_game$Game$Entity$new = function (a) {
 	return {
 		content: a,
@@ -6938,26 +7057,11 @@ var $Orasund$elm_card_game$Game$Entity$new = function (a) {
 		zIndex: 1
 	};
 };
-var $Orasund$elm_card_game$Game$Area$new = function (offset) {
-	return $elm$core$List$map(
-		function (_v0) {
-			var id = _v0.a;
-			var content = _v0.b;
-			return A2(
-				$Orasund$elm_card_game$Game$Entity$mapPosition,
-				function (_v1) {
-					return offset;
-				},
-				A2(
-					$Orasund$elm_card_game$Game$Entity$map,
-					$elm$core$Tuple$pair(id),
-					$Orasund$elm_card_game$Game$Entity$new(content)));
-		});
-};
-var $elm$core$Basics$pi = _Basics_pi;
-var $Orasund$elm_card_game$Game$Entity$rotate = function (amount) {
-	return $Orasund$elm_card_game$Game$Entity$mapRotation(
-		$elm$core$Basics$add(amount));
+var $Orasund$elm_layout$Layout$spacing = function (n) {
+	return A2(
+		$elm$html$Html$Attributes$style,
+		'gap',
+		$elm$core$String$fromFloat(n) + 'px');
 };
 var $elm$virtual_dom$VirtualDom$keyedNode = function (tag) {
 	return _VirtualDom_keyedNode(
@@ -7032,174 +7136,6 @@ var $Orasund$elm_card_game$Game$Area$toHtml = F2(
 					},
 					list)));
 	});
-var $author$project$View$Bird$toHtml = F2(
-	function (args, game) {
-		return A2(
-			$Orasund$elm_layout$Layout$el,
-			_List_fromArray(
-				[$Orasund$elm_layout$Layout$centerContent]),
-			A2(
-				$Orasund$elm_card_game$Game$Area$toHtml,
-				_List_fromArray(
-					[
-						A2($elm$html$Html$Attributes$style, 'width', '400px')
-					]),
-				((!args.birdClicked) ? $elm$core$List$cons(
-					function (entity) {
-						return args.animationToggle ? A2(
-							$Orasund$elm_card_game$Game$Entity$rotate,
-							$elm$core$Basics$pi / 8,
-							A2(
-								$Orasund$elm_card_game$Game$Entity$move,
-								_Utils_Tuple2(30, 20),
-								entity)) : A2(
-							$Orasund$elm_card_game$Game$Entity$rotate,
-							(-$elm$core$Basics$pi) / 4,
-							A2(
-								$Orasund$elm_card_game$Game$Entity$move,
-								_Utils_Tuple2(0, 20),
-								entity));
-					}(
-						A2(
-							$Orasund$elm_card_game$Game$Entity$mapPosition,
-							A2(
-								$elm$core$Tuple$mapBoth,
-								$elm$core$Basics$add(
-									(game.flockSize <= 1) ? 200 : (((game.flockSize - 1) * 300) / (game.flockSize - 1))),
-								$elm$core$Basics$add(0)),
-							A2(
-								$Orasund$elm_card_game$Game$Entity$mapZIndex,
-								function (_v6) {
-									return 2001;
-								},
-								$Orasund$elm_card_game$Game$Entity$new(
-									A2(
-										$elm$core$Tuple$pair,
-										'Click Me',
-										function (attrs) {
-											return A2(
-												$Orasund$elm_layout$Layout$el,
-												attrs,
-												$elm$html$Html$text('Click Me'));
-										})))))) : $elm$core$Basics$identity)(
-					A2(
-						$Orasund$elm_card_game$Game$Area$mapRotation,
-						F2(
-							function (i, _v5) {
-								return $elm$core$Dict$isEmpty(game.cards) ? $elm$core$Basics$add(
-									(($elm$core$Basics$pi / 8) * A2(
-										$elm$core$Basics$modBy,
-										2,
-										args.animationToggle ? (i + 1) : i)) - ($elm$core$Basics$pi / 16)) : $elm$core$Basics$add(
-									(($elm$core$Basics$pi / 2) * A2(
-										$elm$core$Basics$modBy,
-										2,
-										args.animationToggle ? (i + 1) : i)) + (($elm$core$Basics$pi * 3) / 2));
-							}),
-						A2(
-							$Orasund$elm_card_game$Game$Area$mapPosition,
-							F2(
-								function (i, _v4) {
-									return $elm$core$Dict$isEmpty(game.cards) ? A2(
-										$elm$core$Tuple$mapBoth,
-										$elm$core$Basics$add(
-											args.animationToggle ? 0 : 25),
-										$elm$core$Basics$add(
-											25 * A2(
-												$elm$core$Basics$modBy,
-												2,
-												args.animationToggle ? (i + 1) : i))) : $elm$core$Basics$identity;
-								}),
-							A2(
-								$Orasund$elm_card_game$Game$Area$mapPosition,
-								F2(
-									function (i, _v3) {
-										return A2(
-											$elm$core$Tuple$mapBoth,
-											$elm$core$Basics$add(
-												(game.flockSize <= 1) ? 200 : ((i * 300) / (game.flockSize - 1))),
-											$elm$core$Basics$add(0));
-									}),
-								A2(
-									$Orasund$elm_card_game$Game$Area$mapZIndex,
-									F3(
-										function (_v0, _v1, _v2) {
-											return 2000;
-										}),
-									A2(
-										$Orasund$elm_card_game$Game$Area$new,
-										_Utils_Tuple2(0, 0),
-										A2(
-											$elm$core$List$indexedMap,
-											function (i) {
-												return $elm$core$Tuple$pair(
-													'bird_' + $elm$core$String$fromInt(i));
-											},
-											A2(
-												$elm$core$List$repeat,
-												game.flockSize,
-												function (attrs) {
-													return A2(
-														$Orasund$elm_layout$Layout$el,
-														A2(
-															$elm$core$List$cons,
-															A2($elm$html$Html$Attributes$style, 'font-size', '64px'),
-															_Utils_ap(
-																$Orasund$elm_layout$Layout$asButton(
-																	{
-																		label: 'Play Music',
-																		onPress: $elm$core$Maybe$Just(args.playMusic)
-																	}),
-																attrs)),
-														$elm$html$Html$text($author$project$Config$birdEmoji));
-												}))))))))));
-	});
-var $author$project$Config$cardHeight = 180;
-var $author$project$Config$cardWidth = ($author$project$Config$cardHeight * 2) / 3;
-var $Orasund$elm_layout$Layout$column = function (attrs) {
-	return $elm$html$Html$div(
-		_Utils_ap(
-			_List_fromArray(
-				[
-					A2($elm$html$Html$Attributes$style, 'display', 'flex'),
-					A2($elm$html$Html$Attributes$style, 'flex-direction', 'column')
-				]),
-			attrs));
-};
-var $elm$html$Html$h2 = _VirtualDom_node('h2');
-var $Orasund$elm_layout$Layout$heading2 = F2(
-	function (attrs, content) {
-		return A2(
-			$elm$html$Html$h2,
-			A2(
-				$elm$core$List$cons,
-				A2($elm$html$Html$Attributes$style, 'display', 'flex'),
-				attrs),
-			_List_fromArray(
-				[content]));
-	});
-var $author$project$Deck$name = function (deck) {
-	switch (deck.$) {
-		case 'Beach':
-			return 'Beach';
-		case 'Desert':
-			return 'Desert';
-		case 'Valley':
-			return 'Valley';
-		case 'Savanna':
-			return 'Savanna';
-		case 'Island':
-			return 'Island';
-		default:
-			return 'Jungle';
-	}
-};
-var $Orasund$elm_layout$Layout$spacing = function (n) {
-	return A2(
-		$elm$html$Html$Attributes$style,
-		'gap',
-		$elm$core$String$fromFloat(n) + 'px');
-};
 var $Orasund$elm_layout$Layout$asEl = A2($elm$html$Html$Attributes$style, 'display', 'flex');
 var $elm$html$Html$button = _VirtualDom_node('button');
 var $Orasund$elm_layout$Layout$buttonEl = F3(
@@ -7355,6 +7291,16 @@ var $author$project$View$viewCardBack = F2(
 							$author$project$Deck$emoji(deck))));
 			});
 	});
+var $Orasund$elm_card_game$Game$Area$mapPosition = function (fun) {
+	return $elm$core$List$indexedMap(
+		F2(
+			function (i, entity) {
+				return A2(
+					$Orasund$elm_card_game$Game$Entity$mapPosition,
+					A2(fun, i, entity.content),
+					entity);
+			}));
+};
 var $Orasund$elm_layout$Layout$none = $elm$html$Html$text('');
 var $Orasund$elm_card_game$Game$Entity$toHtml = F2(
 	function (attrs, entity) {
@@ -7389,8 +7335,9 @@ var $Orasund$elm_card_game$Game$Entity$pileAbove = F2(
 							stack)));
 			});
 	});
+var $author$project$Card$CellPhone = {$: 'CellPhone'};
 var $author$project$Card$asList = _List_fromArray(
-	[$author$project$Card$Wind, $author$project$Card$Food, $author$project$Card$Predator, $author$project$Card$Friend, $author$project$Card$LowTide, $author$project$Card$Competition, $author$project$Card$Starving, $author$project$Card$Rain]);
+	[$author$project$Card$Wind, $author$project$Card$Food, $author$project$Card$Predator, $author$project$Card$Friend, $author$project$Card$LowTide, $author$project$Card$Competition, $author$project$Card$Starving, $author$project$Card$Rain, $author$project$Card$CellPhone]);
 var $author$project$Card$color = function (card) {
 	var red = '#f08080';
 	var green = '#57cc99';
@@ -7410,8 +7357,10 @@ var $author$project$Card$color = function (card) {
 			return red;
 		case 'Starving':
 			return red;
-		default:
+		case 'Rain':
 			return red;
+		default:
+			return blue;
 	}
 };
 var $author$project$Card$emoji = function (card) {
@@ -7430,8 +7379,10 @@ var $author$project$Card$emoji = function (card) {
 			return '🦅';
 		case 'Starving':
 			return '😵\u200D💫';
-		default:
+		case 'Rain':
 			return '🌧';
+		default:
+			return '📱';
 	}
 };
 var $Orasund$elm_card_game$Game$Card$backgroundImage = function (src) {
@@ -7864,8 +7815,10 @@ var $author$project$Card$name = function (card) {
 			return 'Competition';
 		case 'Starving':
 			return 'Starving';
-		default:
+		case 'Rain':
 			return 'Rain';
+		default:
+			return 'Cell Phone';
 	}
 };
 var $Orasund$elm_layout$Layout$row = function (attrs) {
@@ -8309,6 +8262,7 @@ var $elm$core$Maybe$andThen = F2(
 			return $elm$core$Maybe$Nothing;
 		}
 	});
+var $author$project$Config$birdEmoji = '🐦';
 var $author$project$Config$foodEmoji = '\uD83E\uDEB1';
 var $author$project$Card$description = function (card) {
 	switch (card.$) {
@@ -8326,8 +8280,10 @@ var $author$project$Card$description = function (card) {
 			return 'Remove all Food cards from the deck';
 		case 'Starving':
 			return 'Remove 1 ' + $author$project$Config$foodEmoji;
-		default:
+		case 'Rain':
 			return 'Remove one Wind cards from the deck';
+		default:
+			return 'A mobile handheld computer with wireless connectivity';
 	}
 };
 var $elm$core$List$maybeCons = F3(
@@ -8372,6 +8328,30 @@ var $Orasund$elm_layout$Layout$heading1 = F2(
 			_List_fromArray(
 				[content]));
 	});
+var $Orasund$elm_card_game$Game$Entity$mapZIndex = F2(
+	function (fun, entity) {
+		return _Utils_update(
+			entity,
+			{
+				zIndex: fun(entity.zIndex)
+			});
+	});
+var $Orasund$elm_card_game$Game$Area$new = function (offset) {
+	return $elm$core$List$map(
+		function (_v0) {
+			var id = _v0.a;
+			var content = _v0.b;
+			return A2(
+				$Orasund$elm_card_game$Game$Entity$mapPosition,
+				function (_v1) {
+					return offset;
+				},
+				A2(
+					$Orasund$elm_card_game$Game$Entity$map,
+					$elm$core$Tuple$pair(id),
+					$Orasund$elm_card_game$Game$Entity$new(content)));
+		});
+};
 var $Orasund$elm_card_game$Game$Area$pileAbove = F3(
 	function (_v0, empty, list) {
 		var x = _v0.a;
@@ -8409,6 +8389,7 @@ var $Orasund$elm_card_game$Game$Entity$mapCustomTransformations = F2(
 				customTransformations: fun(entity.customTransformations)
 			});
 	});
+var $elm$core$Basics$pi = _Basics_pi;
 var $Orasund$elm_card_game$Game$Entity$flippable = F2(
 	function (attrs, args) {
 		return A2(
@@ -8595,7 +8576,7 @@ var $author$project$View$viewGame = F2(
 							$Orasund$elm_layout$Layout$heading1,
 							_List_fromArray(
 								[$Orasund$elm_layout$Layout$contentCentered]),
-							$elm$html$Html$text('Waiting for Wind'))
+							$elm$html$Html$text('Cyber Threat Guardian'))
 						])),
 					A2(
 					$Orasund$elm_layout$Layout$column,
@@ -8814,6 +8795,18 @@ var $author$project$View$viewGame = F2(
 				]));
 	});
 var $Orasund$elm_layout$Layout$alignAtEnd = A2($elm$html$Html$Attributes$style, 'align-items', 'flex-end');
+var $Orasund$elm_card_game$Game$Entity$mapRotation = F2(
+	function (fun, entity) {
+		return _Utils_update(
+			entity,
+			{
+				rotation: fun(entity.rotation)
+			});
+	});
+var $Orasund$elm_card_game$Game$Entity$rotate = function (amount) {
+	return $Orasund$elm_card_game$Game$Entity$mapRotation(
+		$elm$core$Basics$add(amount));
+};
 var $author$project$View$viewStats = F2(
 	function (args, game) {
 		return A2(
@@ -8938,10 +8931,6 @@ var $author$project$Main$view = function (model) {
 	return {
 		body: _List_fromArray(
 			[
-				A2(
-				$author$project$View$Bird$toHtml,
-				{animationToggle: model.animationToggle, birdClicked: (!model.musicLoaded) || model.birdClicked, playMusic: $author$project$Main$PlayMusic},
-				model.game),
 				A3(
 				$Orasund$elm_layout$Layout$withStack,
 				_Utils_ap(
@@ -8993,7 +8982,7 @@ var $author$project$Main$view = function (model) {
 						model.game))),
 				$author$project$View$stylesheet
 			]),
-		title: 'Waiting For Wind'
+		title: 'Cyber Threat Guardian'
 	};
 };
 var $author$project$Main$main = $elm$browser$Browser$document(

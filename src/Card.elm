@@ -16,6 +16,7 @@ type Card
     | Competition
     | Starving
     | Rain
+    | CellPhone
 
 
 asList : List Card
@@ -28,6 +29,7 @@ asList =
     , Competition
     , Starving
     , Rain
+    , CellPhone
     ]
 
 
@@ -58,6 +60,9 @@ emoji card =
         Rain ->
             "🌧"
 
+        CellPhone ->
+            "📱"
+
 
 name : Card -> String
 name card =
@@ -86,6 +91,9 @@ name card =
         Rain ->
             "Rain"
 
+        CellPhone ->
+            "Cell Phone"
+
 
 description : Card -> String
 description card =
@@ -113,6 +121,9 @@ description card =
 
         Rain ->
             "Remove one Wind cards from the deck"
+
+        CellPhone ->
+            "A mobile handheld computer with wireless connectivity"
 
 
 color : Card -> String
@@ -151,3 +162,6 @@ color card =
 
         Rain ->
             red
+
+        CellPhone ->
+            blue

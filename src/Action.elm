@@ -46,6 +46,9 @@ fromCard card =
         Rain ->
             [ RemoveCard Wind, DrawCard ]
 
+        CellPhone ->
+            [DrawCard]
+
 
 chooseDeck : Deck -> List Action
 chooseDeck deck =

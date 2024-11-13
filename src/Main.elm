@@ -87,10 +87,12 @@ restart model =
 
 view : Model -> Document Msg
 view model =
-    { title = "Waiting For Wind"
+    { title = "Cyber Threat Guardian"
     , body =
-        [ View.Bird.toHtml { animationToggle = model.animationToggle, playMusic = PlayMusic, birdClicked = not model.musicLoaded || model.birdClicked } model.game
-        , View.viewGame { selectCard = SelectCard, redraw = Redraw } model.game
+        [ 
+        --     View.Bird.toHtml { animationToggle = model.animationToggle, playMusic = PlayMusic, birdClicked = not model.musicLoaded || model.birdClicked } model.game
+        -- , 
+        View.viewGame { selectCard = SelectCard, redraw = Redraw } model.game
             |> Layout.el (Layout.centered ++ [ Html.Attributes.style "width" "400px", Html.Attributes.style "height" "500px" ])
             |> Layout.withStack ([ Html.Attributes.style "height" "100%", Html.Attributes.style "width" "100%" ] ++ Layout.centered)
                 ([ model.game
